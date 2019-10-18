@@ -5,6 +5,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const extFs = require('yyl-fs')
 const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const YylConcatWebpackPlugin = require('yyl-concat-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const webpack = require('webpack')
 const extOs = require('yyl-os')
@@ -27,7 +29,8 @@ const config = {
     jsDest: path.join(__dirname, 'dist/assets/js'),
     htmlDest: path.join(__dirname, 'dist/'),
     cssDest: path.join(__dirname, 'dist/assets/css'),
-    imagesDest: path.join(__dirname, 'dist/assets/images')
+    imagesDest: path.join(__dirname, 'dist/assets/images'),
+    sourceDest: path.join(__dirname, 'dist/assets/source')
   },
   dest: {
     basePath: '/'
@@ -37,7 +40,10 @@ const config = {
 // - setting
 
 // + plugin options
-const iPluginOption = {}
+const iPluginOption = {
+  dirs: [],
+  data: config.alias
+}
 // - plugin options
 
 const wConfig = {
@@ -170,6 +176,20 @@ const wConfig = {
       ),
       chunkFilename: '[name]-[chunkhash:8].css',
       allChunks: true
+    }),
+    new CopyWebpackPlugin([{
+      from: path.join(config.alias.srcRoot, 'source'),
+      to: config.alias.sourceDest,
+      test: /\.html$/
+    }, {
+      from: path.join(config.alias.srcRoot, 'source'),
+      to: path.join(config.alias.sourceDest, '[name]-[hash:8].[ext]'),
+      ignore: ['*.html', '.*']
+    }]),
+    new YylConcatWebpackPlugin({
+      fileMap: {
+        'dist/assets/source/js/demo.js': ['src/source/js/a.js', 'src/source/js/b.js']
+      }
     }),
     new IPlugin(iPluginOption)
   ],

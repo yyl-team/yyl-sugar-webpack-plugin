@@ -1,9 +1,9 @@
-// const PLUGIN_NAME = 'iPlugin'
+// const PLUGIN_NAME = 'YylSugar'
 // const printError = function(msg) {
 //   throw `__inline('name') error: ${msg}`
 // }
 
-class IWebpackPlugin {
+class YylSugarWebpackPlugin {
   constructor() {
     // TODO:
   }
@@ -17,4 +17,4 @@ class IWebpackPlugin {
   }
 }
 
-module.exports = IWebpackPlugin
+module.exports = YylSugarWebpackPlugin

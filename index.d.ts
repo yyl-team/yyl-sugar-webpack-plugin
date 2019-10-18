@@ -1,6 +1,8 @@
-declare class IWebpackPlugin {
-  constructor(op: IWebpackPluginOptions)
+declare class IYylSugarWebpackPlugin {
+  constructor(op: IYylSugarWebpackPluginOptions)
 }
-interface IWebpackPluginOptions {
+interface IYylSugarWebpackPluginOptions {
+  dirs: string[],
+  data: {[key: string]: string}
 }
-export =IWebpackPlugin 
+export =IYylSugarWebpackPlugin 
