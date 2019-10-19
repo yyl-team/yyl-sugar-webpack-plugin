@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const extFs = require('yyl-fs')
 const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const YylCopyWebpackPlugin = require('yyl-copy-webpack-plugin')
 const YylConcatWebpackPlugin = require('yyl-concat-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const webpack = require('webpack')
@@ -177,14 +177,16 @@ const wConfig = {
       chunkFilename: '[name]-[chunkhash:8].css',
       allChunks: true
     }),
-    new CopyWebpackPlugin([{
+    new YylCopyWebpackPlugin([{
       from: path.join(config.alias.srcRoot, 'source'),
       to: config.alias.sourceDest,
-      test: /\.html$/
+      fileName: '[name].[ext]',
+      matcher: ['*.html', '!**/.*']
     }, {
       from: path.join(config.alias.srcRoot, 'source'),
-      to: path.join(config.alias.sourceDest, '[name]-[hash:8].[ext]'),
-      ignore: ['*.html', '.*']
+      to: config.alias.sourceDest,
+      fileName: '[name]-[hash:8].[ext]',
+      matcher: ['!*.html', '!**/.*']
     }]),
     new YylConcatWebpackPlugin({
       fileMap: {

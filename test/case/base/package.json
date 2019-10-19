@@ -30,6 +30,7 @@
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.2",
     "yyl-concat-webpack-plugin": "^0.1.0",
+    "yyl-copy-webpack-plugin": "^0.1.1",
     "yyl-fs": "^0.3.3",
     "yyl-os": "^0.10.2",
     "yyl-util": "^2.3.7"
