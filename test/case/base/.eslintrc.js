@@ -11,7 +11,8 @@ module.exports = {
     $: true,
     Vue: true,
     Vuex: true,
-    VueRouter: true
+    VueRouter: true,
+    __url: true
   },
   extends: ['standard'],
   plugins: [
