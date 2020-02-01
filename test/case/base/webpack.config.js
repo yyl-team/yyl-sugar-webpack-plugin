@@ -1,15 +1,12 @@
 'use strict'
 const path = require('path')
 const fs = require('fs')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const extFs = require('yyl-fs')
-const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin')
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const extOs = require('yyl-os')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const YylCopyWebpackPlugin = require('yyl-copy-webpack-plugin')
 const YylConcatWebpackPlugin = require('yyl-concat-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const webpack = require('webpack')
-const extOs = require('yyl-os')
 
 const IPlugin = require('../../../index')
 
@@ -145,9 +142,6 @@ const wConfig = {
     }, {
       test: /\.css$/,
       use: [{
-        loader: MiniCssExtractPlugin.loader,
-        options: {}
-      }, {
         loader: 'css-loader'
       }]
     }]
@@ -166,17 +160,6 @@ const wConfig = {
   devtool: 'source-map',
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    // 样式分离插件
-    new MiniCssExtractPlugin({
-      filename: util.path.join(
-        path.relative(
-          config.alias.jsDest,
-          path.join(config.alias.cssDest, '[name]-[chunkhash:8].css')
-        )
-      ),
-      chunkFilename: '[name]-[chunkhash:8].css',
-      allChunks: true
-    }),
     new YylCopyWebpackPlugin([{
       from: path.join(config.alias.srcRoot, 'source'),
       to: config.alias.sourceDest,
@@ -197,12 +180,6 @@ const wConfig = {
   ],
   optimization: {
     minimizer: [
-      new UglifyjsWebpackPlugin({
-        uglifyOptions: {
-          ie8: false
-        }
-      }),
-      new OptimizeCSSAssetsPlugin({})
     ]
   }
 }

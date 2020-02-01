@@ -38,17 +38,21 @@ class YylSugarWebpackPlugin {
   }
   render({src, source}) {
     // TODO:
+    return source
   }
   apply(compiler) {
     const { output } = compiler.options
     // + concat-plugin
     if (YylConcatWebpackPlugin) {
+      console.log('=== have YylConcatWebpackPlugin')
       compiler.hooks.compilation.tap(YylConcatWebpackPlugin.getName(), (compilation) => {
         YylConcatWebpackPlugin.getHooks(compilation).beforeConcat.tapAsync(PLUGIN_NAME, (obj, done) => {
+          console.log('=== concat plugin', obj.src, obj.source)
           obj.source = this.render({
             src: obj.src,
             source: obj.source
           })
+          console.log('=== concat done', obj.source)
           done(obj)
         })
       })
@@ -57,12 +61,15 @@ class YylSugarWebpackPlugin {
 
     // + copy-plugin
     if (YylCopyWebpackPlugin) {
+      console.log('=== have YylCopyWebpackPlugin')
       compiler.hooks.compilation.tap(YylCopyWebpackPlugin.getName(), (compilation) => {
         YylCopyWebpackPlugin.getHooks(compilation).beforeCopy.tapAsync(PLUGIN_NAME, (obj, done) => {
+          console.log('=== copy plugin', obj.src, obj.source)
           obj.source = this.render({
             src: obj.src,
             source: obj.source
           })
+          console.log('=== copy done', obj.source)
           done(obj)
         })
       })
@@ -70,14 +77,16 @@ class YylSugarWebpackPlugin {
     // - copy-plugin
 
     // + html-plugin
-    if (HtmlWebpackPlugin) {
-      compiler.hooks.compilation.tap('HtmlWebpackPluginHooks', (compilation) => {
-        HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(PLUGIN_NAME, (obj, done) => {
-          // TODO: 通过 obj.outputName 找回 src 路径
-          done(obj)
-        })
-      })
-    }
+    // if (HtmlWebpackPlugin) {
+    //   console.log('=== have HtmlWebpackPlugin')
+    //   compiler.hooks.compilation.tap('HtmlWebpackPluginHooks', (compilation) => {
+    //     HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(PLUGIN_NAME, (obj, done) => {
+    //       console.log('=== obj.outputName', obj.outputName)
+    //       // TODO: 通过 obj.outputName 找回 src 路径
+    //       done(obj)
+    //     })
+    //   })
+    // }
     // - html-plugin
 
     // compiler.hooks.emit.tap(
