@@ -89,7 +89,7 @@ const wConfig = {
       ),
       use: (() => {
         const loaders = [{
-          loader: 'babel-loader',
+          loader: require.resolve('babel-loader'),
           query: (() => {
             if (!config.babelrc) {
               return {
@@ -107,17 +107,17 @@ const wConfig = {
     }, {
       test: /\.html$/,
       use: [{
-        loader: 'html-loader'
+        loader: require.resolve('html-loader')
       }]
     }, {
       test: /\.pug$/,
       oneOf: [{
-        use: ['pug-loader']
+        use: [require.resolve('pug-loader')]
       }]
     }, {
       test: /\.(png|jpg|gif)$/,
       use: {
-        loader: 'url-loader',
+        loader: require.resolve('url-loader'),
         options: {
           limit: 1,
           name: '[name]-[hash:8].[ext]',
@@ -142,7 +142,7 @@ const wConfig = {
     }, {
       test: /\.css$/,
       use: [{
-        loader: 'css-loader'
+        loader: require.resolve('css-loader')
       }]
     }]
   },
@@ -172,6 +172,7 @@ const wConfig = {
       matcher: ['!*.html', '!**/.*']
     }]),
     new YylConcatWebpackPlugin({
+      basePath: __dirname,
       fileMap: {
         'dist/assets/source/js/demo.js': ['src/source/js/a.js', 'src/source/js/b.js']
       }

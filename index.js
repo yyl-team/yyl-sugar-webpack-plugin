@@ -1,3 +1,5 @@
+const { getHooks } = require('./lib/hooks')
+
 const PLUGIN_NAME = 'YylSugar'
 const printError = function(er) {
   throw new Error(['yyl-sugar-webpack-plugin error:', er])
@@ -33,66 +35,69 @@ try {
 // - include ohther plugin
 
 class YylSugarWebpackPlugin {
-  constructor() {
-    // TODO:
+  constructor({ data }) {
+    this.data = data || {}
+  }
+  static getName() {
+    return PLUGIN_NAME
+  }
+  static getHooks(compilation) {
+    return getHooks(compilation)
   }
   render({src, source}) {
+    console.log('render src:', src)
     // TODO:
     return source
   }
   apply(compiler) {
-    const { output } = compiler.options
+    // const { output } = compiler.options
     // + concat-plugin
     if (YylConcatWebpackPlugin) {
-      console.log('=== have YylConcatWebpackPlugin')
       compiler.hooks.compilation.tap(YylConcatWebpackPlugin.getName(), (compilation) => {
-        YylConcatWebpackPlugin.getHooks(compilation).beforeConcat.tapAsync(PLUGIN_NAME, (obj, done) => {
-          console.log('=== concat plugin', obj.src, obj.source)
-          obj.source = this.render({
-            src: obj.src,
-            source: obj.source
+        YylConcatWebpackPlugin
+          .getHooks(compilation).beforeConcat.tapAsync(PLUGIN_NAME, (obj, done) => {
+            obj.source = this.render({
+              src: obj.src,
+              source: obj.source
+            })
+            done(null, obj)
           })
-          console.log('=== concat done', obj.source)
-          done(obj)
-        })
       })
     }
     // - concat-plugin
 
     // + copy-plugin
     if (YylCopyWebpackPlugin) {
-      console.log('=== have YylCopyWebpackPlugin')
       compiler.hooks.compilation.tap(YylCopyWebpackPlugin.getName(), (compilation) => {
         YylCopyWebpackPlugin.getHooks(compilation).beforeCopy.tapAsync(PLUGIN_NAME, (obj, done) => {
-          console.log('=== copy plugin', obj.src, obj.source)
           obj.source = this.render({
             src: obj.src,
             source: obj.source
           })
-          console.log('=== copy done', obj.source)
-          done(obj)
+          done(null, obj)
         })
       })
     }
     // - copy-plugin
 
-    // + html-plugin
-    // if (HtmlWebpackPlugin) {
-    //   console.log('=== have HtmlWebpackPlugin')
-    //   compiler.hooks.compilation.tap('HtmlWebpackPluginHooks', (compilation) => {
-    //     HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(PLUGIN_NAME, (obj, done) => {
-    //       console.log('=== obj.outputName', obj.outputName)
-    //       // TODO: 通过 obj.outputName 找回 src 路径
-    //       done(obj)
-    //     })
-    //   })
-    // }
-    // - html-plugin
+    // + html-plugin 4
+    if (HtmlWebpackPlugin && HtmlWebpackPlugin.getHooks) {
+      compiler.hooks.compilation.tap('HtmlWebpackPluginHooks', (compilation) => {
+        HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(PLUGIN_NAME, (obj, done) => {
+          const src = obj.plugin.options.template.split('!').pop()
+          obj.html = this.render({
+            src,
+            source: obj.html
+          })
+          done(null, obj)
+        })
+      })
+    }
+    // - html-plugin 4
 
     // compiler.hooks.emit.tap(
     //   PLUGIN_NAME,
     //   (compilation) => {
-        
     //   }
     // )
   }
