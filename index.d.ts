@@ -1,7 +1,21 @@
-declare class IYylSugarWebpackPlugin {
-  constructor(op: IYylSugarWebpackPluginOptions)
+import { AsyncSeriesWaterfallHook } from 'tapable'
+interface FileInfo {
+  dist: string
+  source: Buffer
 }
-interface IYylSugarWebpackPluginOptions {
-  data: {[key: string]: string}
+
+interface Hooks {
+  beforeSugar: AsyncSeriesWaterfallHook<FileInfo>
+  afterSugar: AsyncSeriesWaterfallHook<FileInfo>
+  emit: AsyncSeriesWaterfallHook<undefined>
 }
-export =IYylSugarWebpackPlugin 
+
+declare class YylSugarWebpackPlugin {
+  static getHooks(compilation: any): Hooks
+  static getName(): string
+  constructor(op: IYylSugarWebpackPluginOption)
+}
+interface YylSugarWebpackPluginOption {
+  basePath?: string
+}
+export =YylSugarWebpackPlugin 

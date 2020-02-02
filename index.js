@@ -1,42 +1,27 @@
+const path = require('path')
+const util = require('yyl-util')
 const { getHooks } = require('./lib/hooks')
+const { htmlPathMatch, cssPathMatch, jsPathMatch, REG } = require('yyl-file-replacer')
 
 const PLUGIN_NAME = 'YylSugar'
-const printError = function(er) {
-  throw new Error(['yyl-sugar-webpack-plugin error:', er])
-}
+// const printError = function(er) {
+//   throw new Error(['yyl-sugar-webpack-plugin error:', er])
+// }
 
-// + include ohther plugin
-let YylCopyWebpackPlugin
-try {
-  YylCopyWebpackPlugin = require('yyl-copy-webpack-plugin')
-} catch (er) {
-  if (!(er instanceof Error) || er.code !== 'MODULE_NOT_FOUND') {
-    printError(er)
-  }
+const SUGAR_REG = /(\{\$)([a-zA-Z0-9@_\-$.~]+)(\})/g
+function sugarReplace (str, alias) {
+  return str.replace(SUGAR_REG, (str, $1, $2) => {
+    if ($2 in alias) {
+      return alias[$2]
+    } else {
+      return str
+    }
+  })
 }
-
-let YylConcatWebpackPlugin
-try {
-  YylConcatWebpackPlugin = require('yyl-concat-webpack-plugin')
-} catch (e) {
-  if (!(e instanceof Error) || e.code !== 'MODULE_NOT_FOUND') {
-    printError(e)
-  }
-}
-
-let HtmlWebpackPlugin
-try {
-  HtmlWebpackPlugin = require('html-webpack-plugin')
-} catch (e) {
-  if (!(e instanceof Error) || e.code !== 'MODULE_NOT_FOUND') {
-    printError(e)
-  }
-}
-// - include ohther plugin
 
 class YylSugarWebpackPlugin {
-  constructor({ data }) {
-    this.data = data || {}
+  constructor({ basePath }) {
+    this.basePath = basePath
   }
   static getName() {
     return PLUGIN_NAME
@@ -44,62 +29,151 @@ class YylSugarWebpackPlugin {
   static getHooks(compilation) {
     return getHooks(compilation)
   }
-  render({src, source}) {
-    console.log('render src:', src)
-    // TODO:
-    return source
+  render({ dist, source }) { // 暂不支持相对路径
+    const { alias, assetMap, output } = this
+    const replaceHandle = function(url) {
+      if (url.match(REG.IS_HTTP)) {
+        return url
+      } else {
+        let iPath = ''
+        if (/^\.{1,2}\//.test(url)) {
+          iPath = util.path.join(path.dirname(dist), url)
+        } else {
+          iPath = util.path.relative(
+            output.path,
+            sugarReplace(url, alias)
+          )
+        }
+        if (assetMap[iPath]) {
+          return util.path.join(output.publicPath, assetMap[iPath])
+        } else {
+          return url
+        }
+      }
+    }
+    const iExt = path.extname(dist)
+    let r = source.toString()
+    switch (iExt) {
+      case '.js':
+        r = sugarReplace(jsPathMatch(r, replaceHandle), this.alias)
+        break
+
+      case '.css':
+        r = sugarReplace(cssPathMatch(r, replaceHandle), this.alias)
+        // TODO:
+        break
+
+      case '.html':
+        r = sugarReplace(htmlPathMatch(r, replaceHandle), this.alias)
+        break
+
+      default:
+        break
+    }
+    return Buffer.from(r)
+  }
+  getFileType(str) {
+    str = str.replace(/\?.*/, '')
+    const split = str.split('.')
+    let ext = split[split.length - 1]
+    if (ext === 'map' && split.length > 2) {
+      ext = `${split[split.length - 2]}.${split[split.length - 1]}`
+    }
+    return ext
   }
   apply(compiler) {
-    // const { output } = compiler.options
-    // + concat-plugin
-    if (YylConcatWebpackPlugin) {
-      compiler.hooks.compilation.tap(YylConcatWebpackPlugin.getName(), (compilation) => {
-        YylConcatWebpackPlugin
-          .getHooks(compilation).beforeConcat.tapAsync(PLUGIN_NAME, (obj, done) => {
-            obj.source = this.render({
-              src: obj.src,
-              source: obj.source
-            })
-            done(null, obj)
-          })
-      })
-    }
-    // - concat-plugin
+    const { output, context, resolve } = compiler.options
+    const { alias } = resolve
 
-    // + copy-plugin
-    if (YylCopyWebpackPlugin) {
-      compiler.hooks.compilation.tap(YylCopyWebpackPlugin.getName(), (compilation) => {
-        YylCopyWebpackPlugin.getHooks(compilation).beforeCopy.tapAsync(PLUGIN_NAME, (obj, done) => {
-          obj.source = this.render({
-            src: obj.src,
-            source: obj.source
+    this.alias = {}
+    this.output = output
+
+    Object.keys(alias).forEach((key) => {
+      let iPath = alias[key]
+      if (this.basePath) {
+        iPath = path.resolve(this.basePath, iPath)
+      }
+      iPath = path.resolve(context, iPath)
+      this.alias[key] = iPath
+    })
+
+
+    // + map init
+    const moduleAssets = {}
+    compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
+      compilation.hooks.moduleAsset.tap(PLUGIN_NAME, (module, file) => {
+        if (module.userRequest) {
+          moduleAssets[file] = path.join(path.dirname(file), path.basename(module.userRequest))
+        }
+      })
+    })
+    compiler.hooks.emit.tapAsync(
+      PLUGIN_NAME,
+      async (compilation, done) => {
+        // + init assetMap
+        const assetMap = {}
+        compilation.chunks.forEach((chunk) => {
+          chunk.files.forEach((fName) => {
+            if (chunk.name) {
+              const key = `${util.path.join(path.dirname(fName), chunk.name)}.${this.getFileType(fName)}`
+              assetMap[key] = fName
+            } else {
+              assetMap[fName] = fName
+            }
           })
-          done(null, obj)
         })
-      })
-    }
-    // - copy-plugin
 
-    // + html-plugin 4
-    if (HtmlWebpackPlugin && HtmlWebpackPlugin.getHooks) {
-      compiler.hooks.compilation.tap('HtmlWebpackPluginHooks', (compilation) => {
-        HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(PLUGIN_NAME, (obj, done) => {
-          const src = obj.plugin.options.template.split('!').pop()
-          obj.html = this.render({
-            src,
-            source: obj.html
-          })
-          done(null, obj)
+        const stats = compilation.getStats().toJson({
+          all: false,
+          assets: true,
+          cachedAssets: true
         })
-      })
-    }
-    // - html-plugin 4
+        stats.assets.forEach((asset) => {
+          const name = moduleAssets[asset.name]
+          if (name) {
+            assetMap[util.path.join(name)] = asset.name
+          }
+        })
+        this.assetMap = assetMap
 
-    // compiler.hooks.emit.tap(
-    //   PLUGIN_NAME,
-    //   (compilation) => {
-    //   }
-    // )
+        const iHooks = getHooks(compilation)
+
+        await util.forEach(Object.keys(compilation.assets), async (key) => {
+          let fileInfo = {
+            source: compilation.assets[key].source(),
+            dist: key
+          }
+          switch (path.extname(fileInfo.dist)) {
+            case '.css':
+            case '.js':
+            case '.html':
+              fileInfo = await iHooks.beforeSugar.promise(fileInfo)
+
+              fileInfo.source = this.render(fileInfo)
+
+              fileInfo = await iHooks.afterSugar.promise(fileInfo)
+
+              compilation.assets[key] = {
+                source() {
+                  return fileInfo.source
+                },
+                size() {
+                  return fileInfo.source.length
+                }
+              }
+              break
+
+            default:
+              break
+          }
+        })
+
+        await iHooks.emit.promise()
+        // - init assetMap
+        done()
+      }
+    )
+    // - map init
   }
 }
 

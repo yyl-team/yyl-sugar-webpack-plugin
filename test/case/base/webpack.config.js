@@ -6,6 +6,7 @@ const extOs = require('yyl-os')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const YylCopyWebpackPlugin = require('yyl-copy-webpack-plugin')
 const YylConcatWebpackPlugin = require('yyl-concat-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const webpack = require('webpack')
 
 const IPlugin = require('../../../index')
@@ -142,7 +143,10 @@ const wConfig = {
     }, {
       test: /\.css$/,
       use: [{
-        loader: require.resolve('css-loader')
+        loader: MiniCssExtractPlugin.loader,
+        options: {}
+      }, {
+        loader: 'css-loader'
       }]
     }]
   },
@@ -160,6 +164,17 @@ const wConfig = {
   devtool: 'source-map',
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
+    // 样式分离插件
+    new MiniCssExtractPlugin({
+      filename: util.path.join(
+        path.relative(
+          config.alias.jsDest,
+          path.join(config.alias.cssDest, '[name]-[chunkhash:8].css')
+        )
+      ),
+      chunkFilename: '[name]-[chunkhash:8].css',
+      allChunks: true
+    }),
     new YylCopyWebpackPlugin([{
       from: path.join(config.alias.srcRoot, 'source'),
       to: config.alias.sourceDest,
@@ -176,8 +191,7 @@ const wConfig = {
       fileMap: {
         'dist/assets/source/js/demo.js': ['src/source/js/a.js', 'src/source/js/b.js']
       }
-    }),
-    new IPlugin(iPluginOption)
+    })
   ],
   optimization: {
     minimizer: [
@@ -261,6 +275,9 @@ wConfig.plugins = wConfig.plugins.concat((function () { // html 输出
   return r
 })())
 // - html output
+wConfig.plugins.push(
+  new IPlugin(iPluginOption)
+)
 
 // + dev server
 wConfig.devServer = {
