@@ -2,7 +2,71 @@
 
 ## USAGE
 ```javascript
+const YylSugarWebpackPlugin = require('yyl-sugar-webpack-plugin')
+const wConfig = {
+  plugins: [
+    new YylSugarWebpackPlugin({ basePath: __dirname })
+  ]
+}
+```
+
+## hooks
+```javascript
+let YylSugarWebpackPlugin
+try {
+  YylSugarWebpackPlugin = require('yyl-sugar-webpack-plugin')
+} catch (e) {
+  if (!(e instanceof Error) || e.code !== 'MODULE_NOT_FOUND') {
+    throw e
+  }
+}
+
+const PLUGIN_NAME = 'your_plugin'
+class ExtPlugin {
+  apply (compiler) {
+    const IPlugin = YylSugarWebpackPlugin
+    if (IPlugin) {
+      compiler.hooks.compilation.tap(IPlugin.getName(), (compilation) => {
+        IPlugin.getHooks(compilation).beforeSugar.tapAsync(PLUGIN_NAME, (obj, done) => {
+          console.log('hooks.beforeSugar(obj, done)', 'obj:', obj)
+          done(null, obj)
+        })
+        IPlugin.getHooks(compilation).afterSugar.tapAsync(PLUGIN_NAME, (obj, done) => {
+          console.log('hooks.afterSugar(obj, done)', 'obj:', obj)
+          done(null, obj)
+        })
+
+        IPlugin.getHooks(compilation).emit.tapAsync(PLUGIN_NAME, (obj, done) => {
+          console.log('hooks.emit(obj, done)', 'obj:', obj)
+          done(null, obj)
+        })
+      })
+    }
+  }
+}
 ```
 
 ## ts
-[./index.d.ts](./index.d.ts)
+```typescript
+import { AsyncSeriesWaterfallHook } from 'tapable'
+interface FileInfo {
+  dist: string
+  source: Buffer
+}
+
+interface Hooks {
+  beforeSugar: AsyncSeriesWaterfallHook<FileInfo>
+  afterSugar: AsyncSeriesWaterfallHook<FileInfo>
+  emit: AsyncSeriesWaterfallHook<undefined>
+}
+
+declare class YylSugarWebpackPlugin {
+  static getHooks(compilation: any): Hooks
+  static getName(): string
+  constructor(op: IYylSugarWebpackPluginOption)
+}
+interface YylSugarWebpackPluginOption {
+  basePath?: string
+}
+export =YylSugarWebpackPlugin 
+```
