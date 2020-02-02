@@ -1,6 +1,6 @@
 {
   "name": "yyl-sugar-webpack-plugin",
-  "version": "0.1.0-beta1",
+  "version": "0.1.0",
   "engines": {
     "node": ">= 8.0.0"
   },
@@ -8,13 +8,20 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "jest ./test/jest/",
+    "test:base": "jest ./test/jest/base.test.js",
+    "test:hooks": "jest ./test/jest/hooks.test.js",
     "cba": "node ./test/commander.js all --path test/case/base",
-    "cbw": "node ./test/commander.js watch --path test/case/base"
+    "cbw": "node ./test/commander.js watch --path test/case/base",
+    "cha": "node ./test/commander.js all --path test/case/hooks",
+    "chw": "node ./test/commander.js watch --path test/case/hooks"
   },
   "peerDependencies": {
     "webpack": "^4.4.0 || ^5.0.0"
   },
   "devDependencies": {
+    "jest": "^25.1.0",
+    "webpack": "^4.41.5",
+    "yyl-fs": "^0.3.3",
     "yyl-os": "^0.10.2"
   },
   "dependencies": {
