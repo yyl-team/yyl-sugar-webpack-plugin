@@ -2,6 +2,7 @@ const path = require('path')
 const util = require('yyl-util')
 const { getHooks } = require('./lib/hooks')
 const { htmlPathMatch, cssPathMatch, jsPathMatch, REG } = require('yyl-file-replacer')
+const LANG = require('./lang/index')
 
 const PLUGIN_NAME = 'YylSugar'
 // const printError = function(er) {
@@ -110,6 +111,8 @@ class YylSugarWebpackPlugin {
     compiler.hooks.emit.tapAsync(
       PLUGIN_NAME,
       async (compilation, done) => {
+        const logger = compilation.getLogger(PLUGIN_NAME)
+        logger.group(PLUGIN_NAME)
         // + init assetMap
         const assetMap = {}
         compilation.chunks.forEach((chunk) => {
@@ -138,6 +141,7 @@ class YylSugarWebpackPlugin {
 
         const iHooks = getHooks(compilation)
 
+        logger.info(LANG.SUGAR_INFO)
         await util.forEach(Object.keys(compilation.assets), async (key) => {
           let fileInfo = {
             source: compilation.assets[key].source(),
@@ -152,6 +156,9 @@ class YylSugarWebpackPlugin {
               fileInfo.source = this.render(fileInfo)
 
               fileInfo = await iHooks.afterSugar.promise(fileInfo)
+              if (compilation.assets[key].source() != fileInfo.source) {
+                logger.info(`${LANG.SUGAR_REPLACE}: ${key}`)
+              }
 
               compilation.assets[key] = {
                 source() {
@@ -170,6 +177,7 @@ class YylSugarWebpackPlugin {
 
         await iHooks.emit.promise()
         // - init assetMap
+        logger.groupEnd()
         done()
       }
     )
