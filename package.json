@@ -1,6 +1,6 @@
 {
   "name": "yyl-sugar-webpack-plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "node": ">= 8.0.0"
   },
@@ -13,7 +13,9 @@
     "cba": "node ./test/commander.js all --path test/case/base",
     "cbw": "node ./test/commander.js watch --path test/case/base",
     "cha": "node ./test/commander.js all --path test/case/hooks",
-    "chw": "node ./test/commander.js watch --path test/case/hooks"
+    "chw": "node ./test/commander.js watch --path test/case/hooks",
+    "cna": "node ./test/commander.js all --path test/case/none",
+    "cnw": "node ./test/commander.js watch --path test/case/none"
   },
   "peerDependencies": {
     "webpack": "^4.4.0 || ^5.0.0"

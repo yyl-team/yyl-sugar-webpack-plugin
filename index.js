@@ -142,6 +142,7 @@ class YylSugarWebpackPlugin {
         const iHooks = getHooks(compilation)
 
         logger.info(LANG.SUGAR_INFO)
+        let total = 0
         await util.forEach(Object.keys(compilation.assets), async (key) => {
           let fileInfo = {
             source: compilation.assets[key].source(),
@@ -158,6 +159,7 @@ class YylSugarWebpackPlugin {
               fileInfo = await iHooks.afterSugar.promise(fileInfo)
               if (compilation.assets[key].source() != fileInfo.source) {
                 logger.info(`${LANG.SUGAR_REPLACE}: ${key}`)
+                total++
               }
 
               compilation.assets[key] = {
@@ -177,6 +179,11 @@ class YylSugarWebpackPlugin {
 
         await iHooks.emit.promise()
         // - init assetMap
+        if (total) {
+          logger.info(`${LANG.TOTAL}: ${total}`)
+        } else {
+          logger.info(LANG.NONE)
+        }
         logger.groupEnd()
         done()
       }
