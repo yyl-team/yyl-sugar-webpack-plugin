@@ -19,8 +19,8 @@
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.8.2",
-    "yyl-concat-webpack-plugin": "^0.2.6",
-    "yyl-copy-webpack-plugin": "^0.2.6",
+    "yyl-concat-webpack-plugin": "^0.2.7",
+    "yyl-copy-webpack-plugin": "^0.2.7",
     "yyl-fs": "^0.3.3",
     "yyl-os": "^0.10.2",
     "yyl-util": "^2.3.7"
