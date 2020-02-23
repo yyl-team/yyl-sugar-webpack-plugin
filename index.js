@@ -30,15 +30,16 @@ class YylSugarWebpackPlugin {
   static getHooks(compilation) {
     return getHooks(compilation)
   }
-  render({ dist, source }) { // 暂不支持相对路径
+  render({ dist, source }) {
     const { alias, assetMap, output } = this
+    const renderMap = {}
     const replaceHandle = function(url) {
       if (url.match(REG.IS_HTTP)) {
         return url
       } else {
         let iPath = ''
         if (/^\.{1,2}\//.test(url)) {
-          iPath = util.path.join(path.dirname(dist), url)
+          iPath = util.path.resolve(path.dirname(dist), url)
         } else {
           iPath = util.path.relative(
             output.path,
@@ -46,7 +47,9 @@ class YylSugarWebpackPlugin {
           )
         }
         if (assetMap[iPath]) {
-          return util.path.join(output.publicPath, assetMap[iPath])
+          const r = util.path.resolve(output.publicPath, assetMap[iPath])
+          renderMap[url] = r
+          return r
         } else {
           return url
         }
@@ -61,7 +64,6 @@ class YylSugarWebpackPlugin {
 
       case '.css':
         r = sugarReplace(cssPathMatch(r, replaceHandle), this.alias)
-        // TODO:
         break
 
       case '.html':
@@ -71,7 +73,10 @@ class YylSugarWebpackPlugin {
       default:
         break
     }
-    return Buffer.from(r)
+    return {
+      content: Buffer.from(r),
+      renderMap
+    }
   }
   getFileType(str) {
     str = str.replace(/\?.*/, '')
@@ -148,19 +153,31 @@ class YylSugarWebpackPlugin {
             source: compilation.assets[key].source(),
             dist: key
           }
+          let renderResult = {}
+          let urlKeys = []
           switch (path.extname(fileInfo.dist)) {
             case '.css':
             case '.js':
             case '.html':
               fileInfo = await iHooks.beforeSugar.promise(fileInfo)
 
-              fileInfo.source = this.render(fileInfo)
+              renderResult = this.render(fileInfo)
+
+
+              // 没任何匹配则跳过
+              urlKeys = Object.keys(renderResult.renderMap)
+              if (!urlKeys.length) {
+                return
+              }
+
+              fileInfo.source = renderResult.content
+              logger.info(`# ${LANG.SUGAR_REPLACE} ${key}:`)
+              urlKeys.forEach((key) => {
+                logger.info(`- ${key} -> ${renderResult.renderMap[key]}`)
+              })
 
               fileInfo = await iHooks.afterSugar.promise(fileInfo)
-              if (compilation.assets[key].source() != fileInfo.source) {
-                logger.info(`${LANG.SUGAR_REPLACE}: ${key}`)
-                total++
-              }
+              total++
 
               compilation.assets[key] = {
                 source() {
