@@ -126,6 +126,10 @@ class YylSugarWebpackPlugin {
         const assetMap = {}
         compilation.chunks.forEach((chunk) => {
           chunk.files.forEach((fName) => {
+            // 跳过热更新所生成的文件
+            if (/hot-update/.test(fName)) {
+              return
+            }
             if (chunk.name) {
               const key = `${util.path.join(path.dirname(fName), chunk.name)}.${this.getFileType(fName)}`
               assetMap[key] = fName
