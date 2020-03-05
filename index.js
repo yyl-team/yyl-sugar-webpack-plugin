@@ -33,8 +33,9 @@ class YylSugarWebpackPlugin {
   render({ dist, source }) {
     const { alias, assetMap, output } = this
     const renderMap = {}
+    const notMatchMap = {}
     const replaceHandle = function(url) {
-      if (url.match(REG.IS_HTTP)) {
+      if (url.match(REG.IS_HTTP) || url.match(REG.HTML_IS_ABSLUTE) || url.match(REG.HTML_IGNORE_REG)) {
         return url
       } else {
         let iPath = ''
@@ -51,6 +52,7 @@ class YylSugarWebpackPlugin {
           renderMap[url] = r
           return r
         } else {
+          notMatchMap[url] = iPath
           return url
         }
       }
@@ -59,15 +61,15 @@ class YylSugarWebpackPlugin {
     let r = source.toString()
     switch (iExt) {
       case '.js':
-        r = sugarReplace(jsPathMatch(r, replaceHandle), this.alias)
+        r = jsPathMatch(r, replaceHandle)
         break
 
       case '.css':
-        r = sugarReplace(cssPathMatch(r, replaceHandle), this.alias)
+        r = cssPathMatch(r, replaceHandle)
         break
 
       case '.html':
-        r = sugarReplace(htmlPathMatch(r, replaceHandle), this.alias)
+        r = htmlPathMatch(r, replaceHandle)
         break
 
       default:
@@ -75,7 +77,8 @@ class YylSugarWebpackPlugin {
     }
     return {
       content: Buffer.from(r),
-      renderMap
+      renderMap,
+      notMatchMap
     }
   }
   getFileType(str) {
@@ -155,6 +158,7 @@ class YylSugarWebpackPlugin {
           }
           let renderResult = {}
           let urlKeys = []
+          let errKeys = []
           switch (path.extname(fileInfo.dist)) {
             case '.css':
             case '.js':
@@ -166,7 +170,8 @@ class YylSugarWebpackPlugin {
 
               // 没任何匹配则跳过
               urlKeys = Object.keys(renderResult.renderMap)
-              if (!urlKeys.length) {
+              errKeys = Object.keys(renderResult.notMatchMap)
+              if (!urlKeys.length && !errKeys.length) {
                 return
               }
 
@@ -174,6 +179,10 @@ class YylSugarWebpackPlugin {
               logger.info(`# ${LANG.SUGAR_REPLACE} ${key}:`)
               urlKeys.forEach((key) => {
                 logger.info(`- ${key} -> ${renderResult.renderMap[key]}`)
+              })
+
+              errKeys.forEach((key) => {
+                logger.error(`- ${key} x> ${renderResult.notMatchMap[key]}`)
               })
 
               fileInfo = await iHooks.afterSugar.promise(fileInfo)
