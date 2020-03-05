@@ -52,8 +52,9 @@ class YylSugarWebpackPlugin {
           renderMap[url] = r
           return r
         } else {
+          const r = util.path.resolve(output.publicPath, iPath)
           notMatchMap[url] = iPath
-          return url
+          return r
         }
       }
     }
