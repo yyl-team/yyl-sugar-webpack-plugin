@@ -69,7 +69,7 @@ class YylSugarWebpackPlugin {
       } else {
         let iPath = ''
         if (/^\.{1,2}\//.test(url)) {
-          iPath = util.path.resolve(path.dirname(dist), url)
+          iPath = util.path.join(path.dirname(dist), url)
         } else {
           iPath = util.path.relative(
             output.path,
@@ -77,12 +77,17 @@ class YylSugarWebpackPlugin {
           )
         }
         if (assetMap[iPath]) {
-          const r = util.path.resolve(output.publicPath, assetMap[iPath])
+          const r = util.path.join(output.publicPath, assetMap[iPath])
           renderMap[url] = r
           return r
         } else {
-          const r = util.path.resolve(output.publicPath, iPath)
-          notMatchMap[url] = iPath
+          let r = ''
+          if (path.isAbsolute(iPath)) {
+            r = iPath
+          } else {
+            r = util.path.join(output.publicPath, iPath)
+          }
+          notMatchMap[url] = r
           return r
         }
       }
