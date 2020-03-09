@@ -4,6 +4,7 @@ const { getHooks } = require('./lib/hooks')
 const { createHash } = require('crypto')
 const { htmlPathMatch, cssPathMatch, jsPathMatch, REG } = require('yyl-file-replacer')
 const LANG = require('./lang/index')
+const chalk = require('chalk')
 
 const PLUGIN_NAME = 'YylSugar'
 // const printError = function(er) {
@@ -190,6 +191,7 @@ class YylSugarWebpackPlugin {
 
         logger.info(LANG.SUGAR_INFO)
         let total = 0
+        let oriDist = ''
         await util.forEach(Object.keys(compilation.assets), async (key) => {
           const assetMapKeys = Object.keys(this.assetMap)
           let srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
@@ -219,22 +221,22 @@ class YylSugarWebpackPlugin {
               }
 
               fileInfo.source = renderResult.content
-              const oriDist = fileInfo.dist
+              oriDist = fileInfo.dist
               if (path.extname(oriDist) !== '.html' && fileInfo.src) {
                 fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content)
               }
 
               if (oriDist !== fileInfo.dist) {
-                logger.info(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`)
+                logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`))
               } else {
-                logger.info(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`)
+                logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`))
               }
               urlKeys.forEach((key) => {
-                logger.info(`- ${key} -> ${renderResult.renderMap[key]}`)
+                logger.info(`Y ${chalk.green(key)} -> ${chalk.cyan(renderResult.renderMap[key])}`)
               })
 
               errKeys.forEach((key) => {
-                logger.error(`- ${key} x> ${renderResult.notMatchMap[key]}`)
+                logger.error(`X ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
               })
 
               total++
