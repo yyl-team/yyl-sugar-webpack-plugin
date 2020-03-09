@@ -1,6 +1,7 @@
 const path = require('path')
 const util = require('yyl-util')
 const { getHooks } = require('./lib/hooks')
+const { createHash } = require('crypto')
 const { htmlPathMatch, cssPathMatch, jsPathMatch, REG } = require('yyl-file-replacer')
 const LANG = require('./lang/index')
 
@@ -21,14 +22,42 @@ function sugarReplace (str, alias) {
 }
 
 class YylSugarWebpackPlugin {
-  constructor({ basePath }) {
+  constructor({ basePath, filename }) {
     this.basePath = basePath
+    this.filename = filename || '[name]-[hash:8].[ext]'
   }
   static getName() {
     return PLUGIN_NAME
   }
   static getHooks(compilation) {
     return getHooks(compilation)
+  }
+  getFileName(name, cnt) {
+    const { filename } = this
+
+    const REG_HASH = /\[hash:(\d+)\]/g
+    const REG_NAME = /\[name\]/g
+    const REG_EXT = /\[ext\]/g
+
+    const dirname = path.dirname(name)
+    const basename = path.basename(name)
+    const ext = path.extname(basename).replace(/^\./, '')
+    const iName = basename.slice(0, basename.length - (ext.length > 0 ? ext.length + 1 : 0))
+
+    let hash = ''
+    if (filename.match(REG_HASH)) {
+      let hashLen = 0
+      filename.replace(REG_HASH, (str, $1) => {
+        hashLen = +$1
+        hash = createHash('md5').update(cnt.toString()).digest('hex').slice(0, hashLen)
+      })
+    }
+    const r = filename
+      .replace(REG_HASH, hash)
+      .replace(REG_NAME, iName)
+      .replace(REG_EXT, ext)
+
+    return util.path.join(dirname, r)
   }
   render({ dist, source }) {
     const { alias, assetMap, output } = this
@@ -157,7 +186,10 @@ class YylSugarWebpackPlugin {
         logger.info(LANG.SUGAR_INFO)
         let total = 0
         await util.forEach(Object.keys(compilation.assets), async (key) => {
+          const assetMapKeys = Object.keys(this.assetMap)
+          let srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
           let fileInfo = {
+            src: srcIndex === -1? undefined : assetMapKeys[srcIndex],
             source: compilation.assets[key].source(),
             dist: key
           }
@@ -172,6 +204,7 @@ class YylSugarWebpackPlugin {
 
               renderResult = this.render(fileInfo)
 
+              fileInfo = await iHooks.afterSugar.promise(fileInfo)
 
               // 没任何匹配则跳过
               urlKeys = Object.keys(renderResult.renderMap)
@@ -181,7 +214,16 @@ class YylSugarWebpackPlugin {
               }
 
               fileInfo.source = renderResult.content
-              logger.info(`# ${LANG.SUGAR_REPLACE} ${key}:`)
+              const oriDist = fileInfo.dist
+              if (path.extname(oriDist) !== '.html' && fileInfo.src) {
+                fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content)
+              }
+
+              if (oriDist !== fileInfo.dist) {
+                logger.info(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`)
+              } else {
+                logger.info(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`)
+              }
               urlKeys.forEach((key) => {
                 logger.info(`- ${key} -> ${renderResult.renderMap[key]}`)
               })
@@ -190,10 +232,9 @@ class YylSugarWebpackPlugin {
                 logger.error(`- ${key} x> ${renderResult.notMatchMap[key]}`)
               })
 
-              fileInfo = await iHooks.afterSugar.promise(fileInfo)
               total++
 
-              compilation.assets[key] = {
+              compilation.assets[fileInfo.dist] = {
                 source() {
                   return fileInfo.source
                 },
@@ -201,6 +242,15 @@ class YylSugarWebpackPlugin {
                   return fileInfo.source.length
                 }
               }
+
+              // 更新 assetMap
+              if (oriDist !== fileInfo.dist) {
+                delete compilation.assets[oriDist]
+                compilation.hooks.moduleAsset.call({
+                  userRequest: fileInfo.src 
+                }, fileInfo.dist)
+              }
+
               break
 
             default:

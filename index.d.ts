@@ -25,5 +25,7 @@ declare class YylSugarWebpackPlugin {
 interface YylSugarWebpackPluginOption {
   /** 基础路径, 如设置会 resolve webpack 中的 alias */
   basePath?: string
+  /** 生成的文件名, 默认为 [name]-[hash:8].[ext] */
+  filename?: string
 }
 export =YylSugarWebpackPlugin 
