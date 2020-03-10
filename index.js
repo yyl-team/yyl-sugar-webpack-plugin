@@ -1,3 +1,4 @@
+/* eslint-disable require-atomic-updates */
 const path = require('path')
 const util = require('yyl-util')
 const { getHooks } = require('./lib/hooks')
@@ -65,18 +66,23 @@ class YylSugarWebpackPlugin {
     const renderMap = {}
     const notMatchMap = {}
     const replaceHandle = function(url) {
-      if (url.match(REG.IS_HTTP) || url.match(REG.HTML_IS_ABSLUTE) || url.match(REG.HTML_IGNORE_REG)) {
+      if (
+        url.match(REG.IS_HTTP) ||
+        url.match(REG.HTML_IS_ABSLUTE) ||
+        url.match(REG.HTML_IGNORE_REG)
+      ) {
         return url
       } else {
         let iPath = ''
-        if (/^\.{1,2}\//.test(url)) {
-          iPath = util.path.join(path.dirname(dist), url)
-        } else {
+        if (url.match(SUGAR_REG)) {
           iPath = util.path.relative(
             output.path,
             sugarReplace(url, alias)
           )
+        } else {
+          iPath = util.path.join(path.dirname(dist), url)
         }
+
         if (assetMap[iPath]) {
           const r = util.path.join(output.publicPath, assetMap[iPath])
           renderMap[url] = r
@@ -86,7 +92,11 @@ class YylSugarWebpackPlugin {
           if (path.isAbsolute(iPath)) {
             r = iPath
           } else {
-            r = util.path.join(output.publicPath, iPath)
+            if (url.match(SUGAR_REG)) {
+              r = util.path.join(output.publicPath, iPath)
+            } else {
+              r = url
+            }
           }
           notMatchMap[url] = r
           return r
@@ -196,13 +206,13 @@ class YylSugarWebpackPlugin {
           const assetMapKeys = Object.keys(this.assetMap)
           let srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
           let fileInfo = {
-            src: srcIndex === -1? undefined : assetMapKeys[srcIndex],
+            src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
             source: compilation.assets[key].source(),
             dist: key
           }
           let renderResult = {}
           let urlKeys = []
-          let errKeys = []
+          let warnKeys = []
           switch (path.extname(fileInfo.dist)) {
             case '.css':
             case '.js':
@@ -215,8 +225,8 @@ class YylSugarWebpackPlugin {
 
               // 没任何匹配则跳过
               urlKeys = Object.keys(renderResult.renderMap)
-              errKeys = Object.keys(renderResult.notMatchMap)
-              if (!urlKeys.length && !errKeys.length) {
+              warnKeys = Object.keys(renderResult.notMatchMap)
+              if (!urlKeys.length && !warnKeys.length) {
                 return
               }
 
@@ -235,7 +245,7 @@ class YylSugarWebpackPlugin {
                 logger.info(`Y ${chalk.green(key)} -> ${chalk.cyan(renderResult.renderMap[key])}`)
               })
 
-              errKeys.forEach((key) => {
+              warnKeys.forEach((key) => {
                 logger.error(`X ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
               })
 
@@ -254,7 +264,7 @@ class YylSugarWebpackPlugin {
               if (oriDist !== fileInfo.dist) {
                 delete compilation.assets[oriDist]
                 compilation.hooks.moduleAsset.call({
-                  userRequest: fileInfo.src 
+                  userRequest: fileInfo.src
                 }, fileInfo.dist)
               }
 
