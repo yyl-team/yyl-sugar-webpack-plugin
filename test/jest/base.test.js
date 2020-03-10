@@ -26,10 +26,27 @@ test('case base test', async() => {
     webpack(wConfig, (err, stats) => {
       expect(err).toEqual(null)
 
-      const info = stats.toJson()
+      const info = stats.toJson({
+        all: false,
+        errors: true,
+        warnings: true,
+        logging: 'warn'
+      })
 
       expect(info.errors.length).toEqual(0)
       expect(info.warnings.length).toEqual(0)
+
+      if (info.logging) {
+        Object.keys(info.logging).forEach((pluginName) => {
+          const { entries } = info.logging[pluginName]
+          if (entries && entries.length) {
+            entries.forEach((logInfo) => {
+              expect(logInfo.type).not.toEqual('warn')
+              expect(logInfo.type).not.toEqual('error')
+            })
+          }
+        })
+      }
       done()
     })
   })
