@@ -13,7 +13,9 @@
   (function() {
     const imgPath = __url('../images/1.png')
     const imgPath2 = __url('{$sourceDest}/images/1.png')
-    console.log('html console:', imgPath, imgPath2)
+    const imgPath3 = __url('../images/1.png?1234')
+    const imgPath4 = __url('{$sourceDest}/images/1.png?1234')
+    console.log('html console:', imgPath, imgPath2, imgPath3, imgPath4)
   })()
   </script>
 </body>

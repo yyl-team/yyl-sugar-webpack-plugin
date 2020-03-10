@@ -73,27 +73,35 @@ class YylSugarWebpackPlugin {
       ) {
         return url
       } else {
+        let iUrl = url
+        let qh = ''
+        const QUERY_HASH_REG = /(^.+)([?#].*)$/
+        if (iUrl.match(QUERY_HASH_REG)) {
+          qh = iUrl.replace(QUERY_HASH_REG, '$2')
+          iUrl = iUrl.replace(QUERY_HASH_REG, '$1')
+        }
+
         let iPath = ''
-        if (url.match(SUGAR_REG)) {
+        if (iUrl.match(SUGAR_REG)) {
           iPath = util.path.relative(
             output.path,
-            sugarReplace(url, alias)
+            sugarReplace(iUrl, alias)
           )
         } else {
-          iPath = util.path.join(path.dirname(dist), url)
+          iPath = util.path.join(path.dirname(dist), iUrl)
         }
 
         if (assetMap[iPath]) {
-          const r = util.path.join(output.publicPath, assetMap[iPath])
+          const r = `${util.path.join(output.publicPath, assetMap[iPath])}${qh}`
           renderMap[url] = r
           return r
         } else {
           let r = ''
           if (path.isAbsolute(iPath)) {
-            r = iPath
+            r = `${iPath}${qh}`
           } else {
-            if (url.match(SUGAR_REG)) {
-              r = util.path.join(output.publicPath, iPath)
+            if (iUrl.match(SUGAR_REG)) {
+              r = `${util.path.join(output.publicPath, iPath)}${qh}`
             } else {
               r = url
             }
@@ -246,7 +254,7 @@ class YylSugarWebpackPlugin {
               })
 
               warnKeys.forEach((key) => {
-                logger.error(`X ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
+                logger.warn(`X ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
               })
 
               total++
