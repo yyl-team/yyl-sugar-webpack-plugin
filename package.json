@@ -1,6 +1,6 @@
 {
   "name": "yyl-sugar-webpack-plugin",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "engines": {
     "node": ">= 8.0.0"
   },
@@ -21,6 +21,7 @@
     "webpack": "^4.4.0 || ^5.0.0"
   },
   "devDependencies": {
+    "eslint-plugin-node": "^11.0.0",
     "jest": "^25.1.0",
     "webpack": "^4.41.5",
     "yyl-fs": "^0.3.3",
