@@ -210,7 +210,16 @@ class YylSugarWebpackPlugin {
         logger.info(LANG.SUGAR_INFO)
         let total = 0
         let oriDist = ''
-        await util.forEach(Object.keys(compilation.assets), async (key) => {
+
+        // 排序
+        const keys = Object.keys(compilation.assets)
+        const cssKeys = keys.filter((x) => path.extname(x) === '.css')
+        const jsKeys = keys.filter((x) => path.extname(x) === '.js')
+        const htmlKeys = keys.filter((x) => path.extname(x) === '.html')
+        const otherKeys = keys.filter((x) => ['.css', '.js', '.html'].indexOf(path.extname(x)) === -1)
+        const sorkKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys)
+
+        await util.forEach(sorkKeys, async (key) => {
           const assetMapKeys = Object.keys(this.assetMap)
           let srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
           let fileInfo = {
@@ -245,6 +254,7 @@ class YylSugarWebpackPlugin {
               }
 
               if (oriDist !== fileInfo.dist) {
+                assetMap[fileInfo.src] = fileInfo.dist
                 logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`))
               } else {
                 logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`))
