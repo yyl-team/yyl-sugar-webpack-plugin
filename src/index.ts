@@ -35,6 +35,12 @@ export interface RenderOption {
   source: Buffer
 }
 
+export interface RenderResult {
+  content: Buffer
+  renderMap: ModuleAssets
+  notMatchMap: ModuleAssets
+}
+
 function toCtx<T = any>(ctx: any) {
   return ctx as T
 }
@@ -56,7 +62,7 @@ function sugarReplace(str: string, alias: Alias) {
 export interface InitEmitHooksResult {
   assetMap: ModuleAssets
   compilation: Compilation
-  done: (error: Error) => void
+  done: (error?: Error) => void
 }
 
 export default class YylSugarWebpackPlugin {
@@ -203,11 +209,11 @@ export default class YylSugarWebpackPlugin {
     })
   }
 
-  render(op: RenderOption) {
+  render(op: RenderOption): RenderResult {
     const { dist, source } = op
     const { alias, assetMap, output } = this
-    const renderMap = {}
-    const notMatchMap = {}
+    const renderMap: ModuleAssets = {}
+    const notMatchMap: ModuleAssets = {}
     const replaceHandle = (url: string) => {
       if (
         url.match(REG.IS_HTTP) ||
@@ -231,23 +237,27 @@ export default class YylSugarWebpackPlugin {
           iPath = util.path.join(path.dirname(dist), iUrl)
         }
 
-        if (assetMap[iPath]) {
-          const r = `${util.path.join(output?.publicPath, assetMap[iPath])}${qh}`
-          renderMap[url] = r
-          return r
-        } else {
-          let r = ''
-          if (path.isAbsolute(iPath)) {
-            r = `${iPath}${qh}`
+        if (typeof output?.publicPath === 'string') {
+          if (assetMap[iPath]) {
+            const r = `${util.path.join(output.publicPath, assetMap[iPath])}${qh}`
+            renderMap[url] = r
+            return r
           } else {
-            if (iUrl.match(SUGAR_REG)) {
-              r = `${util.path.join(output.publicPath, iPath)}${qh}`
+            let r = ''
+            if (path.isAbsolute(iPath)) {
+              r = `${iPath}${qh}`
             } else {
-              r = url
+              if (iUrl.match(SUGAR_REG)) {
+                r = `${util.path.join(output.publicPath, iPath)}${qh}`
+              } else {
+                r = url
+              }
             }
+            notMatchMap[url] = r
+            return r
           }
-          notMatchMap[url] = r
-          return r
+        } else {
+          return url
         }
       }
     }
@@ -300,10 +310,14 @@ export default class YylSugarWebpackPlugin {
       const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
       let fileInfo = {
         src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
-        source: compilation.assets[key].source(),
+        source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
         dist: key
       }
-      let renderResult = {}
+      let renderResult: RenderResult = {
+        content: Buffer.from(''),
+        renderMap: {},
+        notMatchMap: {}
+      }
       let urlKeys = []
       let warnKeys = []
       switch (path.extname(fileInfo.dist)) {
