@@ -11,7 +11,7 @@ import {
   Alias,
   ModuleAssets,
   toCtx
-} from './base'
+} from 'yyl-webpack-plugin-base'
 
 const PLUGIN_NAME = 'YylSugar'
 

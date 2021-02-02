@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { Compilation, Compiler, WebpackOptionsNormalized } from 'webpack';
-import { YylWebpackPluginBase, YylWebpackPluginBaseOption, ModuleAssets } from './base';
+import { YylWebpackPluginBase, YylWebpackPluginBaseOption, ModuleAssets } from 'yyl-webpack-plugin-base';
 declare type Output = WebpackOptionsNormalized['output'];
 export declare type YylSugarWebpackPluginOption = Pick<YylWebpackPluginBaseOption, 'context' | 'filename'>;
 export declare type YylSugarWebpackPluginProperty = Required<YylSugarWebpackPluginOption>;

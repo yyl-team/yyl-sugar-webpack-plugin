@@ -12,7 +12,7 @@ var util = require('yyl-util');
 var yylFileReplacer = require('yyl-file-replacer');
 var tapable = require('tapable');
 var chalk = require('chalk');
-var crypto = require('crypto');
+var yylWebpackPluginBase = require('yyl-webpack-plugin-base');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -69,170 +69,13 @@ const LANG = {
     TOTAL: '共更新文件'
 };
 
-/** 任意类型转义 */
-function toCtx(ctx) {
-    return ctx;
-}
-/** yyl webpack plugin 基础类 */
-class YylWebpackPluginBase {
-    constructor(option) {
-        /** 相对路径 */
-        this.context = process.cwd();
-        /** 组件名称 */
-        this.name = 'yylBase';
-        /** 输出文件格式 */
-        this.filename = '[name]-[hash:8].[ext]';
-        /** resolve.alias 绝对路径 */
-        this.alias = {};
-        /** assetsMap */
-        this.assetMap = {};
-        if (option === null || option === void 0 ? void 0 : option.context) {
-            this.context = option.context;
-        }
-        if (option === null || option === void 0 ? void 0 : option.name) {
-            this.name = option.name;
-        }
-        if (option === null || option === void 0 ? void 0 : option.filename) {
-            this.filename = option.filename;
-        }
-    }
-    /** 获取文件类型 */
-    getFileType(str) {
-        const iStr = str.replace(/\?.*/, '');
-        const split = iStr.split('.');
-        let ext = split[split.length - 1];
-        if (ext === 'map' && split.length > 2) {
-            ext = `${split[split.length - 2]}.${split[split.length - 1]}`;
-        }
-        return ext;
-    }
-    /** 获取文件名称 */
-    getFileName(name, cnt) {
-        const { filename } = this;
-        const REG_HASH = /\[hash:(\d+)\]/g;
-        const REG_NAME = /\[name\]/g;
-        const REG_EXT = /\[ext\]/g;
-        const dirname = path__default['default'].dirname(name);
-        const basename = path__default['default'].basename(name);
-        const ext = path__default['default'].extname(basename).replace(/^\./, '');
-        const iName = basename.slice(0, basename.length - (ext.length > 0 ? ext.length + 1 : 0));
-        let hash = '';
-        if (filename.match(REG_HASH)) {
-            let hashLen = 0;
-            filename.replace(REG_HASH, (str, $1) => {
-                hashLen = +$1;
-                hash = crypto.createHash('md5').update(cnt.toString()).digest('hex').slice(0, hashLen);
-                return str;
-            });
-        }
-        const r = filename.replace(REG_HASH, hash).replace(REG_NAME, iName).replace(REG_EXT, ext);
-        return util__default['default'].path.join(dirname, r);
-    }
-    /** 初始化 compilation */
-    initCompilation(compiler) {
-        const { context, resolve } = compiler.options;
-        const { name } = this;
-        const alias = {};
-        if (resolve.alias) {
-            Object.keys(resolve.alias).forEach((key) => {
-                let iPath = toCtx(resolve.alias)[key];
-                if (iPath) {
-                    iPath = path__default['default'].resolve(this.context, iPath);
-                }
-                if (context) {
-                    iPath = path__default['default'].resolve(context, iPath);
-                }
-                alias[key] = iPath;
-            });
-        }
-        return new Promise((resolve) => {
-            // + map init
-            const moduleAssets = {};
-            compiler.hooks.compilation.tap(name, (compilation) => {
-                compilation.hooks.moduleAsset.tap(name, (module, file) => {
-                    if (module.userAssets) {
-                        moduleAssets[file] = path__default['default'].join(path__default['default'].dirname(file), path__default['default'].basename(module.userRequest));
-                    }
-                });
-            });
-            compiler.hooks.emit.tapAsync(name, (compilation, done) => __awaiter(this, void 0, void 0, function* () {
-                // + init assetMap
-                const assetMap = {};
-                compilation.chunks.forEach((chunk) => {
-                    chunk.files.forEach((fName) => {
-                        if (/hot-update/.test(fName)) {
-                            return;
-                        }
-                        if (chunk.name) {
-                            const key = `${util__default['default'].path.join(path__default['default'].dirname(fName), chunk.name)}.${this.getFileType(fName)}`;
-                            assetMap[key] = fName;
-                        }
-                        else {
-                            assetMap[fName] = fName;
-                        }
-                    });
-                });
-                const stats = compilation.getStats().toJson({
-                    all: false,
-                    assets: true,
-                    cachedAssets: true
-                });
-                stats.assets.forEach((asset) => {
-                    const name = moduleAssets[asset.name];
-                    if (name) {
-                        assetMap[util__default['default'].path.join(name)] = asset.name;
-                    }
-                });
-                // - init assetMap
-                this.assetMap = assetMap;
-                this.alias = alias;
-                resolve({
-                    compilation,
-                    done
-                });
-            }));
-            // - map init
-        });
-    }
-    /** 更新 assets */
-    updateAssets(op) {
-        const { compilation, assetsInfo, oriDist } = op;
-        const iAssets = {};
-        iAssets[assetsInfo.dist] = {
-            source() {
-                return assetsInfo.source;
-            },
-            size() {
-                return assetsInfo.source.length;
-            }
-        };
-        compilation.assets[assetsInfo.dist] = {
-            source() {
-                return assetsInfo.source;
-            },
-            size() {
-                return assetsInfo.source.length;
-            }
-        };
-        // 更新 assetMap
-        if (oriDist !== assetsInfo.dist) {
-            if (oriDist) {
-                delete compilation.assets[oriDist];
-            }
-            compilation.hooks.moduleAsset.call({
-                userRequest: assetsInfo.src
-            }, assetsInfo.dist);
-        }
-    }
-}
-
 const PLUGIN_NAME = 'YylSugar';
 const SUGAR_REG = /(\{\$)([a-zA-Z0-9@_\-$.~]+)(\})/g;
 function sugarReplace(str, alias) {
     return str.replace(SUGAR_REG, (str, $1, $2) => {
         if (typeof alias === 'object') {
             if ($2 in alias) {
-                return toCtx(alias)[$2];
+                return yylWebpackPluginBase.toCtx(alias)[$2];
             }
             else {
                 return str;
@@ -243,7 +86,7 @@ function sugarReplace(str, alias) {
         }
     });
 }
-class YylSugarWebpackPlugin extends YylWebpackPluginBase {
+class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
     constructor(option) {
         super(Object.assign(Object.assign({}, option), { name: PLUGIN_NAME }));
         this.output = {};
@@ -405,7 +248,7 @@ class YylSugarWebpackPlugin extends YylWebpackPluginBase {
                             fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content);
                         }
                         if (oriDist !== fileInfo.dist && fileInfo.src) {
-                            toCtx(this.assetMap)[fileInfo.src] = fileInfo.dist;
+                            yylWebpackPluginBase.toCtx(this.assetMap)[fileInfo.src] = fileInfo.dist;
                             logger.info(chalk__default['default'].yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`));
                         }
                         else {
