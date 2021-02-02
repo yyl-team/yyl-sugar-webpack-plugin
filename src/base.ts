@@ -2,34 +2,65 @@ import path from 'path'
 import util from 'yyl-util'
 import { createHash } from 'crypto'
 import { Compilation, Compiler } from 'webpack'
+
+/** 任意类型转义 */
 export function toCtx<T = any>(ctx: any) {
   return ctx as T
 }
 
+/** resolve.alias types */
 export interface Alias {
   [index: string]: string | false | string[]
 }
 
+/** Module.Assets types */
 export interface ModuleAssets {
   [index: string]: string
 }
 
+/** emit hook init - 返回结果 */
 export interface InitEmitHooksResult {
-  assetMap: ModuleAssets
   compilation: Compilation
-  alias: Alias
+  /** 完成回调 */
   done: (error?: Error) => void
 }
 
+/** yyl webpack plugin 基础类 - 配置 */
 export interface YylWebpackPluginBaseOption {
-  context: string
-  name: string
+  context?: string
+  name?: string
+  filename?: string
 }
 
+export interface UpdateAssetsOption {
+  /** 原先输出路径 */
+  oriDist?: string
+  /** assets 信息 */
+  assetsInfo: AssetsInfo
+  compilation: Compilation
+}
+/** 更新 assets 参数 */
+export interface AssetsInfo {
+  /** 文件源 */
+  src?: string
+  /** 输出目录 */
+  dist: string
+  /** 内容 */
+  source: Buffer
+}
+
+/** yyl webpack plugin 基础类 - 属性 */
 export type YylWebpackPluginBaseProperty = Required<YylWebpackPluginBaseOption>
+/** yyl webpack plugin 基础类 */
 export class YylWebpackPluginBase {
+  /** 相对路径 */
   context: YylWebpackPluginBaseProperty['context'] = process.cwd()
+  /** 组件名称 */
   name: YylWebpackPluginBaseProperty['name'] = 'yylBase'
+  /** 输出文件格式 */
+  filename: YylWebpackPluginBaseProperty['filename'] = '[name]-[hash:8].[ext]'
+  /** resolve.alias 绝对路径 */
+  alias: Alias = {}
   /** assetsMap */
   assetMap: ModuleAssets = {}
 
@@ -40,6 +71,10 @@ export class YylWebpackPluginBase {
 
     if (option?.name) {
       this.name = option.name
+    }
+
+    if (option?.filename) {
+      this.filename = option.filename
     }
   }
 
@@ -56,7 +91,8 @@ export class YylWebpackPluginBase {
   }
 
   /** 获取文件名称 */
-  getFileName(name: string, cnt: Buffer, filename: string) {
+  getFileName(name: string, cnt: Buffer) {
+    const { filename } = this
     const REG_HASH = /\[hash:(\d+)\]/g
     const REG_NAME = /\[name\]/g
     const REG_EXT = /\[ext\]/g
@@ -80,9 +116,9 @@ export class YylWebpackPluginBase {
     return util.path.join(dirname, r)
   }
 
-  /** 初始化 assetMap */
-  initEmitHooks(compiler: Compiler): Promise<InitEmitHooksResult> {
-    const { output, context, resolve } = compiler.options
+  /** 初始化 compilation */
+  initCompilation(compiler: Compiler): Promise<InitEmitHooksResult> {
+    const { context, resolve } = compiler.options
     const { name } = this
     const alias: Alias = {}
 
@@ -142,14 +178,51 @@ export class YylWebpackPluginBase {
           }
         })
         // - init assetMap
+
+        this.assetMap = assetMap
+        this.alias = alias
+
         resolve({
-          assetMap,
           compilation,
-          alias,
           done
         })
       })
       // - map init
     })
+  }
+
+  /** 更新 assets */
+  updateAssets(op: UpdateAssetsOption) {
+    const { compilation, assetsInfo, oriDist } = op
+    const iAssets: any = {}
+    iAssets[assetsInfo.dist] = {
+      source() {
+        return assetsInfo.source
+      },
+      size() {
+        return assetsInfo.source.length
+      }
+    }
+    compilation.assets[assetsInfo.dist] = {
+      source() {
+        return assetsInfo.source
+      },
+      size() {
+        return assetsInfo.source.length
+      }
+    } as any
+
+    // 更新 assetMap
+    if (oriDist !== assetsInfo.dist) {
+      if (oriDist) {
+        delete compilation.assets[oriDist]
+      }
+      compilation.hooks.moduleAsset.call(
+        {
+          userRequest: assetsInfo.src
+        } as any,
+        assetsInfo.dist
+      )
+    }
   }
 }

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link href="{$sourceDest}/css/demo.css" />
+  <title>test</title>
+</head>
+<body>
+  <script src="{$sourceDest}/js/demo.js"></script>
+  <script>
+  (function() {
+    const imgPath = __url('../images/1.png')
+    const imgPath2 = __url('{$sourceDest}/images/1.png')
+    const imgPath3 = __url('../images/1.png?1234')
+    const imgPath4 = __url('{$sourceDest}/images/1.png?1234')
+    console.log('html console:', imgPath, imgPath2, imgPath3, imgPath4)
+  })()
+  </script>
+</body>
+  
+</html>
