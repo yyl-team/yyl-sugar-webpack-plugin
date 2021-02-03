@@ -45,7 +45,7 @@ const wConfig = {
   },
   resolve: {
     alias: {
-      'sourceDest': './dist/source'
+      jsDest: './dist/js'
     }
   },
   devtool: 'source-map',

@@ -149,8 +149,9 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                     }
                 }
                 else if (output.path) {
+                    const relativeBase = util__default['default'].path.relative(path__default['default'].join(output.path, path__default['default'].dirname(dist)), output.path);
                     if (assetMap[iPath]) {
-                        const r = `${util__default['default'].path.join(output.path, assetMap[iPath])}${qh}`;
+                        const r = `${util__default['default'].path.join(relativeBase, assetMap[iPath])}${qh}`;
                         renderMap[url] = r;
                         return r;
                     }
@@ -161,7 +162,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                         }
                         else {
                             if (iUrl.match(SUGAR_REG)) {
-                                r = `${iPath}${qh}`;
+                                r = `${util__default['default'].path.join(relativeBase, iPath)}${qh}`;
                             }
                             else {
                                 r = url;
@@ -258,7 +259,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                             logger.info(`Y ${chalk__default['default'].green(key)} -> ${chalk__default['default'].cyan(renderResult.renderMap[key])}`);
                         });
                         warnKeys.forEach((key) => {
-                            logger.warn(`X ${chalk__default['default'].green(key)} -> ${chalk__default['default'].red(renderResult.notMatchMap[key])}`);
+                            logger.warn(`! ${chalk__default['default'].green(key)} -> ${chalk__default['default'].red(renderResult.notMatchMap[key])}`);
                         });
                         total++;
                         /** 更新 assets */

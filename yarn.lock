@@ -5319,7 +5319,19 @@ yyl-file-replacer@^0.6.3:
   resolved "https://registry.npmjs.org/yyl-file-replacer/-/yyl-file-replacer-0.6.3.tgz#27ec069df6f465ec02e69a3084d9652cfecc98b8"
   integrity sha512-WxdYWVgX1S6btkYSgnq/R3nM0nHApwJeRwNrCzzXZHfqkXk4A/bTf5q0CfjWJ66Uy7/Wsr1dpSIAISJuh0rAgw==
 
-yyl-util@^2.3.9:
+yyl-fs@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.npmjs.org/yyl-fs/-/yyl-fs-0.3.3.tgz#aa409a5ea451cd0da287315665f338b1a24d4324"
+  integrity sha512-3I+zY97ZJz91whuiBcdv3qdTQzErI8Dm2YSfJNK3XIAXmzWOSj1nSf6x59KrG4buzIaS3t2LEHVq4kPSYqu/9Q==
+
+yyl-os@^0.11.4:
+  version "0.11.4"
+  resolved "https://registry.npmjs.org/yyl-os/-/yyl-os-0.11.4.tgz#635172b344ab92d2a517bc8c011b8836a30f4e40"
+  integrity sha512-R2YvkA4BMCCk6BdJliBThG3ISN6FZOqeqfiuTXATG8XXF6XVdcL+Ik1H1udWZS99WMLLz+783iKs88KM5CQR0Q==
+  dependencies:
+    yyl-util "^2.3.5"
+
+yyl-util@^2.3.5, yyl-util@^2.3.9:
   version "2.3.9"
   resolved "https://registry.npmjs.org/yyl-util/-/yyl-util-2.3.9.tgz#4c4f5d1af1c9b474e46db5cce6afbc82bbd586ce"
   integrity sha512-sKNudT5RApLNLDnHSppoR+K9yslDmof57gQ5yHDcX8xRADIv8r218DHIsyksSnlEmlld9TXAMYLeazAu4ufW0A==

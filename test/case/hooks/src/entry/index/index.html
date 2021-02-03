@@ -11,5 +11,12 @@
       <h1 class="dm-title">hello plugin</h1>
       <p class="dm-info">demo only</p>
     </div>
+    <script src="{$jsDest}/main.js"></script>
+    <script>
+      ;(function () {
+        var jsPath = __url('{$jsDest}/main.js')
+        console.log(jsPath)
+      })()
+    </script>
   </body>
 </html>

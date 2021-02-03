@@ -9,16 +9,7 @@ console.log(IPlugin)
 
 // + plugin options
 const iPluginOption = {
-  fileMap: {
-    './dist/js/ab.js': ['./src/js/a.js', './src/js/b.js'],
-    './dist/js/ac.js': ['./src/js/a.js', './src/js/c.js'],
-    './dist/js/abindex.js': ['./src/js/a.js', './src/js/b.js', './dist/js/index.js'],
-    './dist/css/ab.css': ['./src/css/a.css', './src/css/b.css'],
-    './dist/css/abindex.css': ['./src/css/a.css', './src/css/b.css', './dist/css/index.css']
-  },
-  minify: true,
-  logBasePath: __dirname,
-  basePath: __dirname
+  context: __dirname
 }
 // - plugin options
 
@@ -54,17 +45,19 @@ const wConfig = {
     ]
   },
   resolve: {
-    alias: {}
+    alias: {
+      jsDest: './dist/js'
+    }
   },
   devtool: 'source-map',
   plugins: [
     new IPlugin(iPluginOption),
+    new ExtPlugin(),
     new HtmlWebpackPlugin({
       template: './src/entry/index/index.html',
       filename: '../html/index.html',
       chunks: 'all'
-    }),
-    new ExtPlugin()
+    })
   ],
   devServer: {
     contentBase: './dist',

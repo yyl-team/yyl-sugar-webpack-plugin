@@ -121,8 +121,13 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
             return r
           }
         } else if (output.path) {
+          const relativeBase = util.path.relative(
+            path.join(output.path, path.dirname(dist)),
+            output.path
+          )
+
           if (assetMap[iPath]) {
-            const r = `${util.path.join(output.path, assetMap[iPath])}${qh}`
+            const r = `${util.path.join(relativeBase, assetMap[iPath])}${qh}`
             renderMap[url] = r
             return r
           } else {
@@ -131,7 +136,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
               r = `${iPath}${qh}`
             } else {
               if (iUrl.match(SUGAR_REG)) {
-                r = `${iPath}${qh}`
+                r = `${util.path.join(relativeBase, iPath)}${qh}`
               } else {
                 r = url
               }
@@ -241,7 +246,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
           })
 
           warnKeys.forEach((key) => {
-            logger.warn(`X ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
+            logger.warn(`! ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
           })
 
           total++

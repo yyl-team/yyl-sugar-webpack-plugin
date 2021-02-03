@@ -49,7 +49,9 @@
     "rollup-plugin-terser": "^5.3.0",
     "rollup-plugin-typescript2": "^0.29.0",
     "typescript": "^4.1.3",
-    "webpack": "^5.19.0"
+    "webpack": "^5.19.0",
+    "yyl-fs": "^0.3.3",
+    "yyl-os": "^0.11.4"
   },
   "name": "yyl-sugar-webpack-plugin",
   "description": "yyl sugar webpack plugin",
