@@ -1,55 +1,68 @@
 {
-  "name": "yyl-sugar-webpack-plugin",
-  "version": "0.1.14",
-  "engines": {
-    "node": ">= 8.0.0"
+  "version": "1.0.0",
+  "main": "output/index.js",
+  "types": "output/index.d.ts",
+  "eslintConfig": {
+    "env": {
+      "jest": true
+    },
+    "extends": [
+      "yyl-react"
+    ]
   },
-  "main": "index.js",
-  "types": "index.d.ts",
+  "eslintIgnore": [
+    "/node_modules",
+    "/output",
+    "/test"
+  ],
+  "prettier": {
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true,
+    "jsxSingleQuote": true,
+    "quoteProps": "consistent",
+    "trailingComma": "none",
+    "printWidth": 100
+  },
   "scripts": {
-    "test": "jest ./test/jest/",
-    "test:base": "jest ./test/jest/base.test.js",
-    "test:hooks": "jest ./test/jest/hooks.test.js",
-    "cba": "node ./test/commander.js all --path test/case/base",
-    "cbw": "node ./test/commander.js watch --path test/case/base",
-    "cha": "node ./test/commander.js all --path test/case/hooks",
-    "chw": "node ./test/commander.js watch --path test/case/hooks",
-    "cna": "node ./test/commander.js all --path test/case/none",
-    "cnw": "node ./test/commander.js watch --path test/case/none"
-  },
-  "peerDependencies": {
-    "webpack": "^4.4.0 || ^5.0.0"
+    "bootstarp": "yarn init & yarn install & npm run prettier",
+    "eslint": "eslint --ext=jsx,ts,tsx ./",
+    "prettier": "prettier --write ./**",
+    "dev": "rollup --config ./rollup.config.js",
+    "d": "rollup --config ./rollup.config.js",
+    "build": "cross-env NODE_ENV=production rollup --config ./rollup.config.js",
+    "w": "rollup --watch --config ./rollup.config.js",
+    "prepublishOnly": "npm run prettier & npm run build",
+    "test": "jest ./test/jest/"
   },
   "devDependencies": {
-    "eslint-plugin-node": "^11.0.0",
-    "jest": "^25.1.0",
-    "webpack": "^4.41.5",
+    "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^11.1.1",
+    "cross-env": "^5.2.0",
+    "eslint": "^6.8.0",
+    "eslint-config-yyl-react": "^0.1.9",
+    "jest": "26.6.3",
+    "prettier": "^2.0.4",
+    "rollup": "^2.38.2",
+    "rollup-plugin-node-externals": "^2.2.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "rollup-plugin-typescript2": "^0.29.0",
+    "typescript": "^4.1.3",
+    "webpack": "^5.19.0",
     "yyl-fs": "^0.3.3",
-    "yyl-os": "^0.10.2"
+    "yyl-os": "^0.11.4"
   },
+  "name": "yyl-sugar-webpack-plugin",
+  "description": "yyl sugar webpack plugin",
+  "repository": "https://github.com/jackness1208/yyl-sugar-webpack-plugin.git",
+  "author": "liudaojie <liudaojie@yy.com>",
+  "license": "MIT",
   "dependencies": {
-    "chalk": "^3.0.0",
-    "tapable": "1.1.3",
-    "yyl-file-replacer": "0.5.0",
-    "yyl-util": "2.3.8"
-  },
-  "description": "sugar plugin",
-  "directories": {
-    "test": "test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jackness1208/yyl-sugar-webpack-plugin.git"
-  },
-  "keywords": [
-    "sugar",
-    "webpack",
-    "plugin"
-  ],
-  "author": "jackness",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jackness1208/yyl-sugar-webpack-plugin/issues"
-  },
-  "homepage": "https://github.com/jackness1208/yyl-sugar-webpack-plugin#readme"
+    "chalk": "^4.1.0",
+    "tapable": "^2.2.0",
+    "yyl-file-replacer": "^0.6.3",
+    "yyl-util": "^2.3.9",
+    "yyl-webpack-plugin-base": "^0.1.0"
+  }
 }

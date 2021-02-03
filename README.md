@@ -1,16 +1,16 @@
 # yyl-sugar-webpack-plugin
 
 ## USAGE
+
 ```javascript
 const YylSugarWebpackPlugin = require('yyl-sugar-webpack-plugin')
 const wConfig = {
-  plugins: [
-    new YylSugarWebpackPlugin({ basePath: __dirname })
-  ]
+  plugins: [new YylSugarWebpackPlugin({ basePath: __dirname })]
 }
 ```
 
 ## hooks
+
 ```javascript
 let YylSugarWebpackPlugin
 try {
@@ -23,7 +23,7 @@ try {
 
 const PLUGIN_NAME = 'your_plugin'
 class ExtPlugin {
-  apply (compiler) {
+  apply(compiler) {
     const IPlugin = YylSugarWebpackPlugin
     if (IPlugin) {
       compiler.hooks.compilation.tap(IPlugin.getName(), (compilation) => {
@@ -47,34 +47,45 @@ class ExtPlugin {
 ```
 
 ## ts
+
 ```typescript
-import { AsyncSeriesWaterfallHook } from 'tapable'
-interface FileInfo {
-  /** 目标路径 */
+/// <reference types="node" />
+import { Compilation, Compiler, WebpackOptionsNormalized } from 'webpack'
+import {
+  YylWebpackPluginBase,
+  YylWebpackPluginBaseOption,
+  ModuleAssets
+} from 'yyl-webpack-plugin-base'
+declare type Output = WebpackOptionsNormalized['output']
+export declare type YylSugarWebpackPluginOption = Pick<
+  YylWebpackPluginBaseOption,
+  'context' | 'filename'
+>
+export declare type YylSugarWebpackPluginProperty = Required<YylSugarWebpackPluginOption>
+export interface RenderOption {
   dist: string
-  /** 内容 */
   source: Buffer
 }
-
-interface Hooks {
-  /** 执行插件前 */
-  beforeSugar: AsyncSeriesWaterfallHook<FileInfo>
-  /** 执行插件后 */
-  afterSugar: AsyncSeriesWaterfallHook<FileInfo>
-  /** 完成时 */
-  emit: AsyncSeriesWaterfallHook<undefined>
+export interface RenderResult {
+  content: Buffer
+  renderMap: ModuleAssets
+  notMatchMap: ModuleAssets
 }
-
-declare class YylSugarWebpackPlugin {
-  /** 获取钩子 */
-  static getHooks(compilation: any): Hooks
-  /** 获取组件名称 */
+export interface InitEmitHooksResult {
+  assetMap: ModuleAssets
+  compilation: Compilation
+  done: (error?: Error) => void
+}
+export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
+  output: Output
+  /** hooks 用方法: 获取 hooks */
+  static getHooks(compilation: Compilation): any
+  /** hooks 用方法: 获取插件名称 */
   static getName(): string
-  constructor(op: YylSugarWebpackPluginOption)
+  constructor(option?: YylSugarWebpackPluginOption)
+  render(op: RenderOption): RenderResult
+  /** 组件执行函数 */
+  apply(compiler: Compiler): Promise<void>
 }
-interface YylSugarWebpackPluginOption {
-  /** 基础路径, 如设置会 resolve webpack 中的 alias */
-  basePath?: string
-}
-export =YylSugarWebpackPlugin 
+export {}
 ```
