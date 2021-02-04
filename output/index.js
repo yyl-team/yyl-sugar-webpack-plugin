@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.2
+ * yyl-sugar-webpack-plugin cjs 1.0.3
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
@@ -201,9 +201,9 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
         return __awaiter(this, void 0, void 0, function* () {
             const { output } = compiler.options;
             this.output = output;
-            const logger = compiler.getInfrastructureLogger(PLUGIN_NAME);
-            logger.group(PLUGIN_NAME);
             const { compilation, done } = yield this.initCompilation(compiler);
+            const logger = compilation.getLogger(PLUGIN_NAME);
+            logger.group(PLUGIN_NAME);
             const iHooks = getHooks(compilation);
             logger.info(LANG.SUGAR_INFO);
             let total = 0;
