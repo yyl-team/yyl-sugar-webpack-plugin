@@ -47,4 +47,4 @@ class ExtPlugin {
 ```
 
 ## 文档
-[这里](./docs/modules.mmd)
+[这里](./docs/modules.md)
