@@ -24,8 +24,8 @@
     "style-loader": "^2.0.0",
     "url-loader": "^4.1.1",
     "webpack": "5.20.1",
-    "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.8.2",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "3.11.2",
     "yyl-fs": "^0.3.3",
     "yyl-os": "^0.10.2",
     "yyl-util": "^2.3.7"

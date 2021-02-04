@@ -61,10 +61,7 @@ const wConfig = {
     contentBase: './dist',
     compress: true,
     port: 5000,
-    writeToDisk: true,
-    async after() {
-      await extOs.openBrowser('http://127.0.0.1:5000/html/')
-    }
+    openPage: 'http://127.0.0.1:5000/html/'
   }
 }
 
