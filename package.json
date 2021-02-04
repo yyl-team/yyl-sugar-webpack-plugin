@@ -66,6 +66,6 @@
     "tapable": "^2.2.0",
     "yyl-file-replacer": "^0.6.3",
     "yyl-util": "^2.3.9",
-    "yyl-webpack-plugin-base": "^0.1.5"
+    "yyl-webpack-plugin-base": "^0.1.6"
   }
 }
