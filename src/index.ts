@@ -179,10 +179,9 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
     const { output } = compiler.options
     this.output = output
 
-    const logger = compiler.getInfrastructureLogger(PLUGIN_NAME)
-    logger.group(PLUGIN_NAME)
-
     const { compilation, done } = await this.initCompilation(compiler)
+    const logger = compilation.getLogger(PLUGIN_NAME)
+    logger.group(PLUGIN_NAME)
     const iHooks = getHooks(compilation)
     logger.info(LANG.SUGAR_INFO)
     let total = 0

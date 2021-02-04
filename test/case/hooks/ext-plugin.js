@@ -8,7 +8,6 @@ class ExtPlugin {
     compiler.hooks.compilation.tap(IPlugin.getName(), (compilation) => {
       IPlugin.getHooks(compilation).beforeSugar.tapAsync(PLUGIN_NAME, async (obj, done) => {
         await util.waitFor(10)
-        console.log('hooks.beforeSugar(obj, done)', 'obj:', obj)
         done(null, obj)
       })
 
