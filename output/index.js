@@ -90,6 +90,9 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
     constructor(option) {
         super(Object.assign(Object.assign({}, option), { name: PLUGIN_NAME }));
         this.output = {};
+        if (option === null || option === void 0 ? void 0 : option.HtmlWebpackPlugin) {
+            this.HtmlWebpackPlugin = option.HtmlWebpackPlugin;
+        }
     }
     /** hooks 用方法: 获取 hooks */
     static getHooks(compilation) {
@@ -196,79 +199,114 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
             notMatchMap
         };
     }
+    sugarFile(op) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let { compilation, fileInfo, hooks } = op;
+            const logger = compilation.getLogger(PLUGIN_NAME);
+            let renderResult = {
+                content: Buffer.from(''),
+                renderMap: {},
+                notMatchMap: {}
+            };
+            let oriDist = '';
+            let urlKeys = [];
+            let warnKeys = [];
+            switch (path__default['default'].extname(fileInfo.dist)) {
+                case '.css':
+                case '.js':
+                case '.html':
+                    fileInfo = yield hooks.beforeSugar.promise(fileInfo);
+                    renderResult = this.render(fileInfo);
+                    fileInfo = yield hooks.afterSugar.promise(fileInfo);
+                    // 没任何匹配则跳过
+                    urlKeys = Object.keys(renderResult.renderMap);
+                    warnKeys = Object.keys(renderResult.notMatchMap);
+                    if (!urlKeys.length && !warnKeys.length) {
+                        return;
+                    }
+                    fileInfo.source = renderResult.content;
+                    oriDist = fileInfo.dist;
+                    if (path__default['default'].extname(oriDist) !== '.html' && fileInfo.src) {
+                        fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content);
+                    }
+                    if (oriDist !== fileInfo.dist && fileInfo.src) {
+                        yylWebpackPluginBase.toCtx(this.assetMap)[fileInfo.src] = fileInfo.dist;
+                        logger.info(chalk__default['default'].yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`));
+                    }
+                    else {
+                        logger.info(chalk__default['default'].yellow(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`));
+                    }
+                    urlKeys.forEach((key) => {
+                        logger.info(`Y ${chalk__default['default'].green(key)} -> ${chalk__default['default'].cyan(renderResult.renderMap[key])}`);
+                    });
+                    warnKeys.forEach((key) => {
+                        logger.warn(`! ${chalk__default['default'].green(key)} -> ${chalk__default['default'].red(renderResult.notMatchMap[key])}`);
+                    });
+                    return fileInfo;
+            }
+        });
+    }
     /** 组件执行函数 */
     apply(compiler) {
         return __awaiter(this, void 0, void 0, function* () {
             const { output } = compiler.options;
             this.output = output;
+            // html-webpack-plugin
+            const { HtmlWebpackPlugin } = this;
+            if (HtmlWebpackPlugin) {
+                compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
+                    HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(PLUGIN_NAME, (info, cb) => __awaiter(this, void 0, void 0, function* () {
+                        var _a;
+                        const fileInfo = yield this.sugarFile({
+                            compilation,
+                            hooks: iHooks,
+                            fileInfo: {
+                                src: ((_a = info.plugin.options) === null || _a === void 0 ? void 0 : _a.template) || undefined,
+                                dist: info.outputName,
+                                source: Buffer.from(info.html)
+                            }
+                        });
+                        if (fileInfo) {
+                            info.html = fileInfo.source.toString();
+                        }
+                        cb(null, info);
+                    }));
+                });
+            }
+            // assets
             const { compilation, done } = yield this.initCompilation(compiler);
             const logger = compilation.getLogger(PLUGIN_NAME);
             logger.group(PLUGIN_NAME);
             const iHooks = getHooks(compilation);
             logger.info(LANG.SUGAR_INFO);
             let total = 0;
-            let oriDist = '';
             // 排序
             const keys = Object.keys(compilation.assets);
             const cssKeys = keys.filter((x) => path__default['default'].extname(x) === '.css');
             const jsKeys = keys.filter((x) => path__default['default'].extname(x) === '.js');
             const htmlKeys = keys.filter((x) => path__default['default'].extname(x) === '.html');
             const otherKeys = keys.filter((x) => ['.css', '.js', '.html'].indexOf(path__default['default'].extname(x)) === -1);
-            const sorkKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys);
+            const sortedKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys);
             const assetMapKeys = Object.keys(this.assetMap);
-            yield util__default['default'].forEach(sorkKeys, (key) => __awaiter(this, void 0, void 0, function* () {
+            // assets sugar replace
+            yield util__default['default'].forEach(sortedKeys, (key) => __awaiter(this, void 0, void 0, function* () {
                 const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key);
-                let fileInfo = {
-                    src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
-                    source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
-                    dist: key
-                };
-                let renderResult = {
-                    content: Buffer.from(''),
-                    renderMap: {},
-                    notMatchMap: {}
-                };
-                let urlKeys = [];
-                let warnKeys = [];
-                switch (path__default['default'].extname(fileInfo.dist)) {
-                    case '.css':
-                    case '.js':
-                    case '.html':
-                        fileInfo = yield iHooks.beforeSugar.promise(fileInfo);
-                        renderResult = this.render(fileInfo);
-                        fileInfo = yield iHooks.afterSugar.promise(fileInfo);
-                        // 没任何匹配则跳过
-                        urlKeys = Object.keys(renderResult.renderMap);
-                        warnKeys = Object.keys(renderResult.notMatchMap);
-                        if (!urlKeys.length && !warnKeys.length) {
-                            return;
-                        }
-                        fileInfo.source = renderResult.content;
-                        oriDist = fileInfo.dist;
-                        if (path__default['default'].extname(oriDist) !== '.html' && fileInfo.src) {
-                            fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content);
-                        }
-                        if (oriDist !== fileInfo.dist && fileInfo.src) {
-                            yylWebpackPluginBase.toCtx(this.assetMap)[fileInfo.src] = fileInfo.dist;
-                            logger.info(chalk__default['default'].yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`));
-                        }
-                        else {
-                            logger.info(chalk__default['default'].yellow(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`));
-                        }
-                        urlKeys.forEach((key) => {
-                            logger.info(`Y ${chalk__default['default'].green(key)} -> ${chalk__default['default'].cyan(renderResult.renderMap[key])}`);
-                        });
-                        warnKeys.forEach((key) => {
-                            logger.warn(`! ${chalk__default['default'].green(key)} -> ${chalk__default['default'].red(renderResult.notMatchMap[key])}`);
-                        });
-                        total++;
-                        /** 更新 assets */
-                        this.updateAssets({
-                            compilation,
-                            oriDist,
-                            assetsInfo: fileInfo
-                        });
-                        break;
+                const fileInfo = yield this.sugarFile({
+                    fileInfo: {
+                        src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
+                        source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
+                        dist: key
+                    },
+                    compilation,
+                    hooks: iHooks
+                });
+                if (fileInfo) {
+                    this.updateAssets({
+                        compilation,
+                        oriDist: fileInfo.dist,
+                        assetsInfo: fileInfo
+                    });
+                    total++;
                 }
             }));
             yield iHooks.emit.promise();

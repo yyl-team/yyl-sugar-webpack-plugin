@@ -8,7 +8,8 @@ console.log(IPlugin)
 
 // + plugin options
 const iPluginOption = {
-  context: __dirname
+  context: __dirname,
+  HtmlWebpackPlugin: HtmlWebpackPlugin
 }
 // - plugin options
 
