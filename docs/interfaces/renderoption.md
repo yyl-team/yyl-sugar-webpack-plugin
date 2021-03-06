@@ -19,7 +19,7 @@
 
 • **dist**: *string*
 
-Defined in: [src/index.ts:27](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L27)
+Defined in: src/index.ts:33
 
 ___
 
@@ -27,4 +27,4 @@ ___
 
 • **source**: *Buffer*
 
-Defined in: [src/index.ts:28](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L28)
+Defined in: src/index.ts:34

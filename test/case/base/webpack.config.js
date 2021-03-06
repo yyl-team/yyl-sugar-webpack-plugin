@@ -56,6 +56,11 @@ const wConfig = {
       filename: '../html/index.html',
       chunks: 'all'
     }),
+    new HtmlWebpackPlugin({
+      template: './src/entry/index/index.html',
+      filename: '../html/sub.html',
+      chunks: 'all'
+    }),
     new IPlugin(iPluginOption)
   ],
   devServer: {

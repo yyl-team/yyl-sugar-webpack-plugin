@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.3
+ * yyl-sugar-webpack-plugin cjs 1.0.4
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
@@ -122,6 +122,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                     iUrl = iUrl.replace(QUERY_HASH_REG, '$1');
                 }
                 let iPath = '';
+                console.log('===', iUrl, alias);
                 if (iUrl.match(SUGAR_REG)) {
                     iPath = util__default['default'].path.relative((output === null || output === void 0 ? void 0 : output.path) || '', sugarReplace(iUrl, alias));
                 }
@@ -147,7 +148,9 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                                 r = url;
                             }
                         }
-                        notMatchMap[url] = r;
+                        if (url !== r) {
+                            notMatchMap[url] = r;
+                        }
                         return r;
                     }
                 }
@@ -171,7 +174,9 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                                 r = url;
                             }
                         }
-                        notMatchMap[url] = r;
+                        if (r !== url) {
+                            notMatchMap[url] = r;
+                        }
                         return r;
                     }
                 }
@@ -249,8 +254,23 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
     /** 组件执行函数 */
     apply(compiler) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { output } = compiler.options;
+            const { output, context, resolve } = compiler.options;
             this.output = output;
+            // alias path resolve
+            const alias = {};
+            if (resolve.alias) {
+                Object.keys(resolve.alias).forEach((key) => {
+                    let iPath = yylWebpackPluginBase.toCtx(resolve.alias)[key];
+                    if (iPath) {
+                        iPath = path__default['default'].resolve(this.context, iPath);
+                    }
+                    if (context) {
+                        iPath = path__default['default'].resolve(context, iPath);
+                    }
+                    alias[key] = iPath;
+                });
+                this.alias = alias;
+            }
             // html-webpack-plugin
             const { HtmlWebpackPlugin } = this;
             if (HtmlWebpackPlugin) {
@@ -268,6 +288,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                         });
                         if (fileInfo) {
                             info.html = fileInfo.source.toString();
+                            total++;
                         }
                         cb(null, info);
                     }));
@@ -309,15 +330,19 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                     total++;
                 }
             }));
-            yield iHooks.emit.promise();
             // - init assetMap
-            if (total) {
-                logger.info(`${LANG.TOTAL}: ${total}`);
-            }
-            else {
-                logger.info(LANG.NONE);
-            }
-            logger.groupEnd();
+            // total count
+            compiler.hooks.emit.tapAsync(PLUGIN_NAME, (compilation, cb) => __awaiter(this, void 0, void 0, function* () {
+                yield iHooks.emit.promise();
+                if (total) {
+                    logger.info(`${LANG.TOTAL}: ${total}`);
+                }
+                else {
+                    logger.info(LANG.NONE);
+                }
+                logger.groupEnd();
+                cb();
+            }));
             done();
         });
     }

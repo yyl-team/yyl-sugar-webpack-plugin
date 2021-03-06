@@ -13,6 +13,7 @@
 - [InitEmitHooksResult](interfaces/initemithooksresult.md)
 - [RenderOption](interfaces/renderoption.md)
 - [RenderResult](interfaces/renderresult.md)
+- [SugarOption](interfaces/sugaroption.md)
 
 ### Type aliases
 
@@ -23,9 +24,9 @@
 
 ### YylSugarWebpackPluginOption
 
-Ƭ **YylSugarWebpackPluginOption**: *Pick*<YylWebpackPluginBaseOption, *context* \| *filename*\>
+Ƭ **YylSugarWebpackPluginOption**: *Pick*<YylWebpackPluginBaseOption, *context* \| *filename*\> & { `HtmlWebpackPlugin?`: *typeof* HtmlWebpackPlugin  }
 
-Defined in: [src/index.ts:22](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L22)
+Defined in: src/index.ts:23
 
 ___
 
@@ -33,4 +34,4 @@ ___
 
 Ƭ **YylSugarWebpackPluginProperty**: *Required*<[*YylSugarWebpackPluginOption*](modules.md#yylsugarwebpackpluginoption)\>
 
-Defined in: [src/index.ts:24](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L24)
+Defined in: src/index.ts:30

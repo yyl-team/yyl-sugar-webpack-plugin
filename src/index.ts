@@ -119,6 +119,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
         }
 
         let iPath = ''
+        console.log('===', iUrl, alias)
         if (iUrl.match(SUGAR_REG)) {
           iPath = util.path.relative(output?.path || '', sugarReplace(iUrl, alias))
         } else {
@@ -141,7 +142,9 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
                 r = url
               }
             }
-            notMatchMap[url] = r
+            if (url !== r) {
+              notMatchMap[url] = r
+            }
             return r
           }
         } else if (output.path) {
@@ -165,7 +168,9 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
                 r = url
               }
             }
-            notMatchMap[url] = r
+            if (r !== url) {
+              notMatchMap[url] = r
+            }
             return r
           }
         } else {
@@ -256,8 +261,25 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
 
   /** 组件执行函数 */
   async apply(compiler: Compiler) {
-    const { output } = compiler.options
+    const { output, context, resolve } = compiler.options
     this.output = output
+
+    // alias path resolve
+    const alias: Alias = {}
+    if (resolve.alias) {
+      Object.keys(resolve.alias).forEach((key) => {
+        let iPath: string = toCtx<any>(resolve.alias)[key]
+        if (iPath) {
+          iPath = path.resolve(this.context, iPath)
+        }
+        if (context) {
+          iPath = path.resolve(context, iPath)
+        }
+
+        alias[key] = iPath
+      })
+      this.alias = alias
+    }
 
     // html-webpack-plugin
     const { HtmlWebpackPlugin } = this
@@ -277,6 +299,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
             })
             if (fileInfo) {
               info.html = fileInfo.source.toString()
+              total++
             }
             cb(null, info)
           }
@@ -325,14 +348,20 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
       }
     })
 
-    await iHooks.emit.promise()
     // - init assetMap
-    if (total) {
-      logger.info(`${LANG.TOTAL}: ${total}`)
-    } else {
-      logger.info(LANG.NONE)
-    }
-    logger.groupEnd()
+
+    // total count
+    compiler.hooks.emit.tapAsync(PLUGIN_NAME, async (compilation, cb) => {
+      await iHooks.emit.promise()
+      if (total) {
+        logger.info(`${LANG.TOTAL}: ${total}`)
+      } else {
+        logger.info(LANG.NONE)
+      }
+      logger.groupEnd()
+      cb()
+    })
+
     done()
   }
 }
