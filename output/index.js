@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.4
+ * yyl-sugar-webpack-plugin cjs 1.0.5
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
@@ -89,6 +89,7 @@ function sugarReplace(str, alias) {
 class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
     constructor(option) {
         super(Object.assign(Object.assign({}, option), { name: PLUGIN_NAME }));
+        this.alias = {};
         this.output = {};
         if (option === null || option === void 0 ? void 0 : option.HtmlWebpackPlugin) {
             this.HtmlWebpackPlugin = option.HtmlWebpackPlugin;
@@ -256,6 +257,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
         return __awaiter(this, void 0, void 0, function* () {
             const { output, context, resolve } = compiler.options;
             this.output = output;
+            let total = 0;
             // alias path resolve
             const alias = {};
             if (resolve.alias) {
@@ -279,7 +281,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                         var _a;
                         const fileInfo = yield this.sugarFile({
                             compilation,
-                            hooks: iHooks,
+                            hooks: getHooks(compilation),
                             fileInfo: {
                                 src: ((_a = info.plugin.options) === null || _a === void 0 ? void 0 : _a.template) || undefined,
                                 dist: info.outputName,
@@ -295,55 +297,58 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                 });
             }
             // assets
-            const { compilation, done } = yield this.initCompilation(compiler);
-            const logger = compilation.getLogger(PLUGIN_NAME);
-            logger.group(PLUGIN_NAME);
-            const iHooks = getHooks(compilation);
-            logger.info(LANG.SUGAR_INFO);
-            let total = 0;
-            // 排序
-            const keys = Object.keys(compilation.assets);
-            const cssKeys = keys.filter((x) => path__default['default'].extname(x) === '.css');
-            const jsKeys = keys.filter((x) => path__default['default'].extname(x) === '.js');
-            const htmlKeys = keys.filter((x) => path__default['default'].extname(x) === '.html');
-            const otherKeys = keys.filter((x) => ['.css', '.js', '.html'].indexOf(path__default['default'].extname(x)) === -1);
-            const sortedKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys);
-            const assetMapKeys = Object.keys(this.assetMap);
-            // assets sugar replace
-            yield util__default['default'].forEach(sortedKeys, (key) => __awaiter(this, void 0, void 0, function* () {
-                const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key);
-                const fileInfo = yield this.sugarFile({
-                    fileInfo: {
-                        src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
-                        source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
-                        dist: key
-                    },
-                    compilation,
-                    hooks: iHooks
-                });
-                if (fileInfo) {
-                    this.updateAssets({
-                        compilation,
-                        oriDist: fileInfo.dist,
-                        assetsInfo: fileInfo
-                    });
-                    total++;
-                }
-            }));
-            // - init assetMap
-            // total count
-            compiler.hooks.emit.tapAsync(PLUGIN_NAME, (compilation, cb) => __awaiter(this, void 0, void 0, function* () {
-                yield iHooks.emit.promise();
-                if (total) {
-                    logger.info(`${LANG.TOTAL}: ${total}`);
-                }
-                else {
-                    logger.info(LANG.NONE);
-                }
-                logger.groupEnd();
-                cb();
-            }));
-            done();
+            this.initCompilation({
+                compiler,
+                onProcessAssets: (compilation) => __awaiter(this, void 0, void 0, function* () {
+                    total = 0;
+                    const logger = compilation.getLogger(PLUGIN_NAME);
+                    logger.group(PLUGIN_NAME);
+                    const iHooks = getHooks(compilation);
+                    logger.info(LANG.SUGAR_INFO);
+                    // 排序
+                    const keys = Object.keys(compilation.assets);
+                    const cssKeys = keys.filter((x) => path__default['default'].extname(x) === '.css');
+                    const jsKeys = keys.filter((x) => path__default['default'].extname(x) === '.js');
+                    const htmlKeys = keys.filter((x) => path__default['default'].extname(x) === '.html');
+                    const otherKeys = keys.filter((x) => ['.css', '.js', '.html'].indexOf(path__default['default'].extname(x)) === -1);
+                    const sortedKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys);
+                    const assetMapKeys = Object.keys(this.assetMap);
+                    // assets sugar replace
+                    yield util__default['default'].forEach(sortedKeys, (key) => __awaiter(this, void 0, void 0, function* () {
+                        const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key);
+                        const fileInfo = yield this.sugarFile({
+                            fileInfo: {
+                                src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
+                                source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
+                                dist: key
+                            },
+                            compilation,
+                            hooks: iHooks
+                        });
+                        if (fileInfo) {
+                            this.updateAssets({
+                                compilation,
+                                oriDist: fileInfo.dist,
+                                assetsInfo: fileInfo
+                            });
+                            total++;
+                        }
+                    }));
+                    // - init assetMap
+                    // total count
+                    compiler.hooks.emit.tapAsync(PLUGIN_NAME, (compilation, cb) => __awaiter(this, void 0, void 0, function* () {
+                        yield iHooks.emit.promise();
+                        if (total) {
+                            logger.info(`${LANG.TOTAL}: ${total}`);
+                        }
+                        else {
+                            logger.info(LANG.NONE);
+                        }
+                        logger.groupEnd();
+                        cb();
+                    }));
+                })
+            });
         });
     }
 }
