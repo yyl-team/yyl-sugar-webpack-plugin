@@ -36,6 +36,9 @@
     "doc": "typedoc src/index.ts --plugin typedoc-plugin-markdown",
     "test": "npm run build & jest ./test/jest/"
   },
+  "peerDependencies": {
+    "webpack": ">=5.0.0"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-json": "^4.1.0",
