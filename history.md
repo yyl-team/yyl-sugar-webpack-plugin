@@ -1,9 +1,15 @@
 # 历史版本
-## 1.0.3 (2021-02-04)
 
+## 1.0.4 (2021-03-06)
+
+- feat:更新 `yyl-webpack-plugin-base@0.1.8`
+- feat: 调整 sugar 实现方式
+
+## 1.0.3 (2021-02-04)
 
 - feat: 更新 `yyl-webpack-plugin-base@0.1.5`
 - feat: 补充 docs
+
 ## 1.0.2 (2021-02-04)
 
 - feat: 更新 `yyl-webpack-plugin-base@0.1.2`

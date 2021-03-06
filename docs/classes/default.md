@@ -16,6 +16,7 @@
 
 ### Properties
 
+- [HtmlWebpackPlugin](default.md#htmlwebpackplugin)
 - [alias](default.md#alias)
 - [assetMap](default.md#assetmap)
 - [context](default.md#context)
@@ -31,6 +32,7 @@
 - [getFileType](default.md#getfiletype)
 - [initCompilation](default.md#initcompilation)
 - [render](default.md#render)
+- [sugarFile](default.md#sugarfile)
 - [updateAssets](default.md#updateassets)
 - [getHooks](default.md#gethooks)
 - [getName](default.md#getname)
@@ -39,19 +41,27 @@
 
 ### constructor
 
-\+ **new default**(`option?`: *Pick*<YylWebpackPluginBaseOption, *context* \| *filename*\>): [*default*](default.md)
+\+ **new default**(`option?`: [*YylSugarWebpackPluginOption*](../modules.md#yylsugarwebpackpluginoption)): [*default*](default.md)
 
 #### Parameters:
 
 Name | Type |
 ------ | ------ |
-`option?` | *Pick*<YylWebpackPluginBaseOption, *context* \| *filename*\> |
+`option?` | [*YylSugarWebpackPluginOption*](../modules.md#yylsugarwebpackpluginoption) |
 
 **Returns:** [*default*](default.md)
 
-Defined in: [src/index.ts:67](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L67)
+Defined in: src/index.ts:88
 
 ## Properties
+
+### HtmlWebpackPlugin
+
+• `Optional` **HtmlWebpackPlugin**: *undefined* \| *typeof* HtmlWebpackPlugin
+
+Defined in: src/index.ts:79
+
+___
 
 ### alias
 
@@ -107,7 +117,7 @@ ___
 
 • **output**: OutputNormalized
 
-Defined in: [src/index.ts:58](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L58)
+Defined in: src/index.ts:78
 
 ## Methods
 
@@ -143,7 +153,7 @@ Name | Type |
 
 **Returns:** *Promise*<*void*\>
 
-Defined in: [src/index.ts:178](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L178)
+Defined in: src/index.ts:263
 
 ___
 
@@ -215,7 +225,23 @@ Name | Type |
 
 **Returns:** [*RenderResult*](../interfaces/renderresult.md)
 
-Defined in: [src/index.ts:76](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L76)
+Defined in: src/index.ts:100
+
+___
+
+### sugarFile
+
+▸ **sugarFile**(`op`: [*SugarOption*](../interfaces/sugaroption.md)): *Promise*<*undefined* \| { `dist`: *string* ; `source`: *Buffer* ; `src?`: *undefined* \| *string*  }\>
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`op` | [*SugarOption*](../interfaces/sugaroption.md) |
+
+**Returns:** *Promise*<*undefined* \| { `dist`: *string* ; `source`: *Buffer* ; `src?`: *undefined* \| *string*  }\>
+
+Defined in: src/index.ts:206
 
 ___
 
@@ -251,7 +277,7 @@ Name | Type |
 
 **Returns:** *any*
 
-Defined in: [src/index.ts:60](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L60)
+Defined in: src/index.ts:81
 
 ___
 
@@ -263,4 +289,4 @@ hooks 用方法: 获取插件名称
 
 **Returns:** *string*
 
-Defined in: [src/index.ts:65](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e84b17a/src/index.ts#L65)
+Defined in: src/index.ts:86

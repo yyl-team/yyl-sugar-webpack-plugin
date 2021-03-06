@@ -2,6 +2,7 @@ import path from 'path'
 import util from 'yyl-util'
 import { Compilation, Compiler, WebpackOptionsNormalized } from 'webpack'
 import { htmlPathMatch, cssPathMatch, jsPathMatch, REG } from 'yyl-file-replacer'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
 import { getHooks } from './hooks'
 import { LANG } from './lang'
 import chalk from 'chalk'
@@ -19,7 +20,12 @@ const SUGAR_REG = /(\{\$)([a-zA-Z0-9@_\-$.~]+)(\})/g
 
 type Output = WebpackOptionsNormalized['output']
 
-export type YylSugarWebpackPluginOption = Pick<YylWebpackPluginBaseOption, 'context' | 'filename'>
+export type YylSugarWebpackPluginOption = Pick<
+  YylWebpackPluginBaseOption,
+  'context' | 'filename'
+> & {
+  HtmlWebpackPlugin?: typeof HtmlWebpackPlugin
+}
 
 export type YylSugarWebpackPluginProperty = Required<YylSugarWebpackPluginOption>
 
@@ -32,6 +38,20 @@ export interface RenderResult {
   content: Buffer
   renderMap: ModuleAssets
   notMatchMap: ModuleAssets
+}
+
+/** sugar 文件信息 */
+export interface SugarOption {
+  fileInfo: {
+    /** 文件原地址 */
+    src?: string
+    /** 文件输出地址 */
+    dist: string
+    /** 文件内容 */
+    source: Buffer
+  }
+  compilation: Compilation
+  hooks: any
 }
 
 function sugarReplace(str: string, alias: Alias) {
@@ -56,6 +76,7 @@ export interface InitEmitHooksResult {
 
 export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
   output: Output = {}
+  HtmlWebpackPlugin?: typeof HtmlWebpackPlugin
   /** hooks 用方法: 获取 hooks */
   static getHooks(compilation: Compilation) {
     return getHooks(compilation)
@@ -71,6 +92,9 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
       ...option,
       name: PLUGIN_NAME
     })
+    if (option?.HtmlWebpackPlugin) {
+      this.HtmlWebpackPlugin = option.HtmlWebpackPlugin
+    }
   }
 
   render(op: RenderOption): RenderResult {
@@ -95,6 +119,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
         }
 
         let iPath = ''
+        console.log('===', iUrl, alias)
         if (iUrl.match(SUGAR_REG)) {
           iPath = util.path.relative(output?.path || '', sugarReplace(iUrl, alias))
         } else {
@@ -117,7 +142,9 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
                 r = url
               }
             }
-            notMatchMap[url] = r
+            if (url !== r) {
+              notMatchMap[url] = r
+            }
             return r
           }
         } else if (output.path) {
@@ -141,7 +168,9 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
                 r = url
               }
             }
-            notMatchMap[url] = r
+            if (r !== url) {
+              notMatchMap[url] = r
+            }
             return r
           }
         } else {
@@ -174,18 +203,117 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
     }
   }
 
+  async sugarFile(op: SugarOption): Promise<SugarOption['fileInfo'] | undefined> {
+    let { compilation, fileInfo, hooks } = op
+    const logger = compilation.getLogger(PLUGIN_NAME)
+
+    let renderResult: RenderResult = {
+      content: Buffer.from(''),
+      renderMap: {},
+      notMatchMap: {}
+    }
+    let oriDist = ''
+    let urlKeys = []
+    let warnKeys = []
+    switch (path.extname(fileInfo.dist)) {
+      case '.css':
+      case '.js':
+      case '.html':
+        fileInfo = await hooks.beforeSugar.promise(fileInfo)
+
+        renderResult = this.render(fileInfo)
+
+        fileInfo = await hooks.afterSugar.promise(fileInfo)
+
+        // 没任何匹配则跳过
+        urlKeys = Object.keys(renderResult.renderMap)
+        warnKeys = Object.keys(renderResult.notMatchMap)
+        if (!urlKeys.length && !warnKeys.length) {
+          return
+        }
+
+        fileInfo.source = renderResult.content
+        oriDist = fileInfo.dist
+        if (path.extname(oriDist) !== '.html' && fileInfo.src) {
+          fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content)
+        }
+
+        if (oriDist !== fileInfo.dist && fileInfo.src) {
+          toCtx<any>(this.assetMap)[fileInfo.src] = fileInfo.dist
+          logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`))
+        } else {
+          logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`))
+        }
+        urlKeys.forEach((key) => {
+          logger.info(`Y ${chalk.green(key)} -> ${chalk.cyan(renderResult.renderMap[key])}`)
+        })
+
+        warnKeys.forEach((key) => {
+          logger.warn(`! ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
+        })
+
+        return fileInfo
+
+      default:
+        break
+    }
+  }
+
   /** 组件执行函数 */
   async apply(compiler: Compiler) {
-    const { output } = compiler.options
+    const { output, context, resolve } = compiler.options
     this.output = output
 
+    // alias path resolve
+    const alias: Alias = {}
+    if (resolve.alias) {
+      Object.keys(resolve.alias).forEach((key) => {
+        let iPath: string = toCtx<any>(resolve.alias)[key]
+        if (iPath) {
+          iPath = path.resolve(this.context, iPath)
+        }
+        if (context) {
+          iPath = path.resolve(context, iPath)
+        }
+
+        alias[key] = iPath
+      })
+      this.alias = alias
+    }
+
+    // html-webpack-plugin
+    const { HtmlWebpackPlugin } = this
+    if (HtmlWebpackPlugin) {
+      compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
+        HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(
+          PLUGIN_NAME,
+          async (info, cb) => {
+            const fileInfo = await this.sugarFile({
+              compilation,
+              hooks: iHooks,
+              fileInfo: {
+                src: info.plugin.options?.template || undefined,
+                dist: info.outputName,
+                source: Buffer.from(info.html)
+              }
+            })
+            if (fileInfo) {
+              info.html = fileInfo.source.toString()
+              total++
+            }
+            cb(null, info)
+          }
+        )
+      })
+    }
+
+    // assets
     const { compilation, done } = await this.initCompilation(compiler)
     const logger = compilation.getLogger(PLUGIN_NAME)
     logger.group(PLUGIN_NAME)
     const iHooks = getHooks(compilation)
     logger.info(LANG.SUGAR_INFO)
     let total = 0
-    let oriDist = ''
 
     // 排序
     const keys = Object.keys(compilation.assets)
@@ -193,84 +321,47 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
     const jsKeys = keys.filter((x) => path.extname(x) === '.js')
     const htmlKeys = keys.filter((x) => path.extname(x) === '.html')
     const otherKeys = keys.filter((x) => ['.css', '.js', '.html'].indexOf(path.extname(x)) === -1)
-    const sorkKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys)
+    const sortedKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys)
 
     const assetMapKeys = Object.keys(this.assetMap)
 
-    await util.forEach(sorkKeys, async (key) => {
+    // assets sugar replace
+    await util.forEach(sortedKeys, async (key) => {
       const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
-      let fileInfo = {
-        src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
-        source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
-        dist: key
-      }
-      let renderResult: RenderResult = {
-        content: Buffer.from(''),
-        renderMap: {},
-        notMatchMap: {}
-      }
-      let urlKeys = []
-      let warnKeys = []
-      switch (path.extname(fileInfo.dist)) {
-        case '.css':
-        case '.js':
-        case '.html':
-          fileInfo = await iHooks.beforeSugar.promise(fileInfo)
+      const fileInfo = await this.sugarFile({
+        fileInfo: {
+          src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
+          source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
+          dist: key
+        },
+        compilation,
+        hooks: iHooks
+      })
 
-          renderResult = this.render(fileInfo)
-
-          fileInfo = await iHooks.afterSugar.promise(fileInfo)
-
-          // 没任何匹配则跳过
-          urlKeys = Object.keys(renderResult.renderMap)
-          warnKeys = Object.keys(renderResult.notMatchMap)
-          if (!urlKeys.length && !warnKeys.length) {
-            return
-          }
-
-          fileInfo.source = renderResult.content
-          oriDist = fileInfo.dist
-          if (path.extname(oriDist) !== '.html' && fileInfo.src) {
-            fileInfo.dist = this.getFileName(fileInfo.src, renderResult.content)
-          }
-
-          if (oriDist !== fileInfo.dist && fileInfo.src) {
-            toCtx<any>(this.assetMap)[fileInfo.src] = fileInfo.dist
-            logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${oriDist} -> ${fileInfo.dist}:`))
-          } else {
-            logger.info(chalk.yellow(`# ${LANG.SUGAR_REPLACE} ${fileInfo.dist}:`))
-          }
-          urlKeys.forEach((key) => {
-            logger.info(`Y ${chalk.green(key)} -> ${chalk.cyan(renderResult.renderMap[key])}`)
-          })
-
-          warnKeys.forEach((key) => {
-            logger.warn(`! ${chalk.green(key)} -> ${chalk.red(renderResult.notMatchMap[key])}`)
-          })
-
-          total++
-
-          /** 更新 assets */
-          this.updateAssets({
-            compilation,
-            oriDist,
-            assetsInfo: fileInfo
-          })
-          break
-
-        default:
-          break
+      if (fileInfo) {
+        this.updateAssets({
+          compilation,
+          oriDist: fileInfo.dist,
+          assetsInfo: fileInfo
+        })
+        total++
       }
     })
 
-    await iHooks.emit.promise()
     // - init assetMap
-    if (total) {
-      logger.info(`${LANG.TOTAL}: ${total}`)
-    } else {
-      logger.info(LANG.NONE)
-    }
-    logger.groupEnd()
+
+    // total count
+    compiler.hooks.emit.tapAsync(PLUGIN_NAME, async (compilation, cb) => {
+      await iHooks.emit.promise()
+      if (total) {
+        logger.info(`${LANG.TOTAL}: ${total}`)
+      } else {
+        logger.info(LANG.NONE)
+      }
+      logger.groupEnd()
+      cb()
+    })
+
     done()
   }
 }

@@ -8,7 +8,8 @@ console.log(IPlugin)
 
 // + plugin options
 const iPluginOption = {
-  context: __dirname
+  context: __dirname,
+  HtmlWebpackPlugin: HtmlWebpackPlugin
 }
 // - plugin options
 
@@ -53,6 +54,11 @@ const wConfig = {
     new HtmlWebpackPlugin({
       template: './src/entry/index/index.html',
       filename: '../html/index.html',
+      chunks: 'all'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/entry/index/index.html',
+      filename: '../html/sub.html',
       chunks: 'all'
     }),
     new IPlugin(iPluginOption)
