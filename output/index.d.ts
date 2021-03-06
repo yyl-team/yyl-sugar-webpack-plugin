@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { Compilation, Compiler, WebpackOptionsNormalized } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import { YylWebpackPluginBase, YylWebpackPluginBaseOption, ModuleAssets } from 'yyl-webpack-plugin-base';
+import { YylWebpackPluginBase, YylWebpackPluginBaseOption, Alias, ModuleAssets } from 'yyl-webpack-plugin-base';
 declare type Output = WebpackOptionsNormalized['output'];
 export declare type YylSugarWebpackPluginOption = Pick<YylWebpackPluginBaseOption, 'context' | 'filename'> & {
     HtmlWebpackPlugin?: typeof HtmlWebpackPlugin;
@@ -35,6 +35,7 @@ export interface InitEmitHooksResult {
     done: (error?: Error) => void;
 }
 export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
+    alias: Alias;
     output: Output;
     HtmlWebpackPlugin?: typeof HtmlWebpackPlugin;
     /** hooks 用方法: 获取 hooks */

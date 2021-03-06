@@ -75,6 +75,7 @@ export interface InitEmitHooksResult {
 }
 
 export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
+  alias: Alias = {}
   output: Output = {}
   HtmlWebpackPlugin?: typeof HtmlWebpackPlugin
   /** hooks 用方法: 获取 hooks */
@@ -264,6 +265,8 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
     const { output, context, resolve } = compiler.options
     this.output = output
 
+    let total = 0
+
     // alias path resolve
     const alias: Alias = {}
     if (resolve.alias) {
@@ -290,7 +293,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
           async (info, cb) => {
             const fileInfo = await this.sugarFile({
               compilation,
-              hooks: iHooks,
+              hooks: getHooks(compilation),
               fileInfo: {
                 src: info.plugin.options?.template || undefined,
                 dist: info.outputName,
@@ -308,61 +311,65 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
     }
 
     // assets
-    const { compilation, done } = await this.initCompilation(compiler)
-    const logger = compilation.getLogger(PLUGIN_NAME)
-    logger.group(PLUGIN_NAME)
-    const iHooks = getHooks(compilation)
-    logger.info(LANG.SUGAR_INFO)
-    let total = 0
+    this.initCompilation({
+      compiler,
+      onProcessAssets: async (compilation) => {
+        total = 0
+        const logger = compilation.getLogger(PLUGIN_NAME)
+        logger.group(PLUGIN_NAME)
+        const iHooks = getHooks(compilation)
+        logger.info(LANG.SUGAR_INFO)
 
-    // 排序
-    const keys = Object.keys(compilation.assets)
-    const cssKeys = keys.filter((x) => path.extname(x) === '.css')
-    const jsKeys = keys.filter((x) => path.extname(x) === '.js')
-    const htmlKeys = keys.filter((x) => path.extname(x) === '.html')
-    const otherKeys = keys.filter((x) => ['.css', '.js', '.html'].indexOf(path.extname(x)) === -1)
-    const sortedKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys)
+        // 排序
+        const keys = Object.keys(compilation.assets)
+        const cssKeys = keys.filter((x) => path.extname(x) === '.css')
+        const jsKeys = keys.filter((x) => path.extname(x) === '.js')
+        const htmlKeys = keys.filter((x) => path.extname(x) === '.html')
+        const otherKeys = keys.filter(
+          (x) => ['.css', '.js', '.html'].indexOf(path.extname(x)) === -1
+        )
+        const sortedKeys = otherKeys.concat(cssKeys).concat(jsKeys).concat(htmlKeys)
 
-    const assetMapKeys = Object.keys(this.assetMap)
+        const assetMapKeys = Object.keys(this.assetMap)
 
-    // assets sugar replace
-    await util.forEach(sortedKeys, async (key) => {
-      const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
-      const fileInfo = await this.sugarFile({
-        fileInfo: {
-          src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
-          source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
-          dist: key
-        },
-        compilation,
-        hooks: iHooks
-      })
+        // assets sugar replace
+        await util.forEach(sortedKeys, async (key) => {
+          const srcIndex = assetMapKeys.map((key) => this.assetMap[key]).indexOf(key)
+          const fileInfo = await this.sugarFile({
+            fileInfo: {
+              src: srcIndex === -1 ? undefined : assetMapKeys[srcIndex],
+              source: Buffer.from(compilation.assets[key].source().toString(), 'utf-8'),
+              dist: key
+            },
+            compilation,
+            hooks: iHooks
+          })
 
-      if (fileInfo) {
-        this.updateAssets({
-          compilation,
-          oriDist: fileInfo.dist,
-          assetsInfo: fileInfo
+          if (fileInfo) {
+            this.updateAssets({
+              compilation,
+              oriDist: fileInfo.dist,
+              assetsInfo: fileInfo
+            })
+            total++
+          }
         })
-        total++
+
+        // - init assetMap
+
+        // total count
+        compiler.hooks.emit.tapAsync(PLUGIN_NAME, async (compilation, cb) => {
+          await iHooks.emit.promise()
+          if (total) {
+            logger.info(`${LANG.TOTAL}: ${total}`)
+          } else {
+            logger.info(LANG.NONE)
+          }
+          logger.groupEnd()
+          cb()
+        })
       }
     })
-
-    // - init assetMap
-
-    // total count
-    compiler.hooks.emit.tapAsync(PLUGIN_NAME, async (compilation, cb) => {
-      await iHooks.emit.promise()
-      if (total) {
-        logger.info(`${LANG.TOTAL}: ${total}`)
-      } else {
-        logger.info(LANG.NONE)
-      }
-      logger.groupEnd()
-      cb()
-    })
-
-    done()
   }
 }
 

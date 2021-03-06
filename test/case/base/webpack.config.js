@@ -1,6 +1,7 @@
 'use strict'
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const extOs = require('yyl-os')
 const IPlugin = require('../../../')
 
@@ -20,9 +21,9 @@ const wConfig = {
     main: ['./src/entry/index/index.js']
   },
   output: {
-    path: path.join(__dirname, './dist/js'),
-    filename: '[name]-[chunkhash:8].js',
-    chunkFilename: 'async_component/[name]-[chunkhash:8].js'
+    path: path.join(__dirname, './dist/'),
+    filename: 'js/[name]-[chunkhash:8].js',
+    chunkFilename: 'js/async_component/[name]-[chunkhash:8].js'
   },
   module: {
     rules: [
@@ -51,14 +52,15 @@ const wConfig = {
   },
   devtool: 'source-map',
   plugins: [
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: './src/entry/index/index.html',
-      filename: '../html/index.html',
+      filename: 'html/index.html',
       chunks: 'all'
     }),
     new HtmlWebpackPlugin({
       template: './src/entry/index/index.html',
-      filename: '../html/sub.html',
+      filename: 'html/sub.html',
       chunks: 'all'
     }),
     new IPlugin(iPluginOption)
