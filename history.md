@@ -1,5 +1,9 @@
 # 历史版本
 
+## 1.0.6 (2021-03-09)
+
+- feat:调整 `html-webpack-plugin` 为 `devDependencies`
+
 ## 1.0.5 (2021-03-07)
 
 - feat:更新 `yyl-webpack-plugin-base@0.2.1`
