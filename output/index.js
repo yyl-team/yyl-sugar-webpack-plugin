@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.5
+ * yyl-sugar-webpack-plugin cjs 1.0.6
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
