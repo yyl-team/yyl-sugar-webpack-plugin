@@ -120,7 +120,6 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
         }
 
         let iPath = ''
-        console.log('===', iUrl, alias)
         if (iUrl.match(SUGAR_REG)) {
           iPath = util.path.relative(output?.path || '', sugarReplace(iUrl, alias))
         } else {

@@ -51,7 +51,7 @@ Name | Type |
 
 **Returns:** [*default*](default.md)
 
-Defined in: [src/index.ts:89](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L89)
+Defined in: src/index.ts:89
 
 ## Properties
 
@@ -59,7 +59,7 @@ Defined in: [src/index.ts:89](https://github.com/jackness1208/yyl-sugar-webpack-
 
 • `Optional` **HtmlWebpackPlugin**: *undefined* \| *typeof* HtmlWebpackPlugin
 
-Defined in: [src/index.ts:80](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L80)
+Defined in: src/index.ts:80
 
 ___
 
@@ -67,7 +67,7 @@ ___
 
 • **alias**: Alias
 
-Defined in: [src/index.ts:78](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L78)
+Defined in: src/index.ts:78
 
 ___
 
@@ -115,7 +115,7 @@ ___
 
 • **output**: OutputNormalized
 
-Defined in: [src/index.ts:79](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L79)
+Defined in: src/index.ts:79
 
 ## Methods
 
@@ -151,7 +151,7 @@ Name | Type |
 
 **Returns:** *Promise*<*void*\>
 
-Defined in: [src/index.ts:264](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L264)
+Defined in: src/index.ts:263
 
 ___
 
@@ -223,7 +223,7 @@ Name | Type |
 
 **Returns:** [*RenderResult*](../interfaces/renderresult.md)
 
-Defined in: [src/index.ts:101](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L101)
+Defined in: src/index.ts:101
 
 ___
 
@@ -239,7 +239,7 @@ Name | Type |
 
 **Returns:** *Promise*<*undefined* \| { `dist`: *string* ; `source`: *Buffer* ; `src?`: *undefined* \| *string*  }\>
 
-Defined in: [src/index.ts:207](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L207)
+Defined in: src/index.ts:206
 
 ___
 
@@ -275,7 +275,7 @@ Name | Type |
 
 **Returns:** *any*
 
-Defined in: [src/index.ts:82](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L82)
+Defined in: src/index.ts:82
 
 ___
 
@@ -287,4 +287,4 @@ hooks 用方法: 获取插件名称
 
 **Returns:** *string*
 
-Defined in: [src/index.ts:87](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/9cdb7ae/src/index.ts#L87)
+Defined in: src/index.ts:87

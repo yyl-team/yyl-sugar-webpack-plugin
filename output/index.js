@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.6
+ * yyl-sugar-webpack-plugin cjs 1.0.7
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
@@ -123,7 +123,6 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                     iUrl = iUrl.replace(QUERY_HASH_REG, '$1');
                 }
                 let iPath = '';
-                console.log('===', iUrl, alias);
                 if (iUrl.match(SUGAR_REG)) {
                     iPath = util__default['default'].path.relative((output === null || output === void 0 ? void 0 : output.path) || '', sugarReplace(iUrl, alias));
                 }
