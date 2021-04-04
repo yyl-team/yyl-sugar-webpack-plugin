@@ -1,5 +1,9 @@
 # 历史版本
 
+## 1.0.7 (2021-04-05)
+
+- del: 去掉 console
+
 ## 1.0.6 (2021-03-09)
 
 - feat:调整 `html-webpack-plugin` 为 `devDependencies`
