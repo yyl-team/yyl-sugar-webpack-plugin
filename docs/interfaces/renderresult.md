@@ -20,7 +20,7 @@
 
 • **content**: *Buffer*
 
-Defined in: src/index.ts:38
+Defined in: [src/index.ts:38](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/0ff4c17/src/index.ts#L38)
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 • **notMatchMap**: ModuleAssets
 
-Defined in: src/index.ts:40
+Defined in: [src/index.ts:40](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/0ff4c17/src/index.ts#L40)
 
 ___
 
@@ -36,4 +36,4 @@ ___
 
 • **renderMap**: ModuleAssets
 
-Defined in: src/index.ts:39
+Defined in: [src/index.ts:39](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/0ff4c17/src/index.ts#L39)

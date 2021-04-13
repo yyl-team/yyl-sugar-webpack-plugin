@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.7
+ * yyl-sugar-webpack-plugin cjs 1.0.8
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
@@ -185,6 +185,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                 }
             }
         };
+        console.log('===', assetMap);
         const iExt = path__default['default'].extname(dist);
         let r = source.toString();
         switch (iExt) {

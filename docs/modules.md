@@ -26,7 +26,7 @@
 
 Ƭ **YylSugarWebpackPluginOption**: *Pick*<YylWebpackPluginBaseOption, *context* \| *filename*\> & { `HtmlWebpackPlugin?`: *typeof* HtmlWebpackPlugin  }
 
-Defined in: src/index.ts:23
+Defined in: [src/index.ts:23](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/0ff4c17/src/index.ts#L23)
 
 ___
 
@@ -34,4 +34,4 @@ ___
 
 Ƭ **YylSugarWebpackPluginProperty**: *Required*<[*YylSugarWebpackPluginOption*](modules.md#yylsugarwebpackpluginoption)\>
 
-Defined in: src/index.ts:30
+Defined in: [src/index.ts:30](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/0ff4c17/src/index.ts#L30)
