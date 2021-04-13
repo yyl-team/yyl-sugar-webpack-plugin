@@ -178,6 +178,8 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
         }
       }
     }
+
+    console.log('===', assetMap)
     const iExt = path.extname(dist)
     let r = source.toString()
     switch (iExt) {

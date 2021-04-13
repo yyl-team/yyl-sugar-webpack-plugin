@@ -1,5 +1,10 @@
 # 历史版本
 
+## 1.0.8 (2021-04-05)
+
+- feat:更新 `yyl-webpack-plugin-base@0.2.2`
+- fix: 修复 在 window 系统下 通过 yyl-concat-webpack-plugin 生成的 文件不能被正确映射的问题
+
 ## 1.0.7 (2021-04-05)
 
 - del: 去掉 console
