@@ -63,7 +63,7 @@
   "name": "yyl-sugar-webpack-plugin",
   "description": "yyl sugar webpack plugin",
   "repository": "https://github.com/jackness1208/yyl-sugar-webpack-plugin.git",
-  "author": "liudaojie <liudaojie@yy.com>",
+  "author": "jackness1208",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.0",
