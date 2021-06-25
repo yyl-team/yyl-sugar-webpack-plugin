@@ -348,7 +348,7 @@ export default class YylSugarWebpackPlugin extends YylWebpackPluginBase {
           if (fileInfo) {
             this.updateAssets({
               compilation,
-              oriDist: fileInfo.dist,
+              oriDist: key,
               assetsInfo: fileInfo
             })
             total++
