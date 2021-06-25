@@ -20,7 +20,7 @@
 
 • **assetMap**: ModuleAssets
 
-Defined in: [src/index.ts:72](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e89cb2a/src/index.ts#L72)
+Defined in: [src/index.ts:72](https://github.com/yyl-team/yyl-sugar-webpack-plugin/blob/7289d26/src/index.ts#L72)
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 • **compilation**: *Compilation*
 
-Defined in: [src/index.ts:73](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e89cb2a/src/index.ts#L73)
+Defined in: [src/index.ts:73](https://github.com/yyl-team/yyl-sugar-webpack-plugin/blob/7289d26/src/index.ts#L73)
 
 ___
 
@@ -36,4 +36,4 @@ ___
 
 • **done**: (`error?`: Error) => *void*
 
-Defined in: [src/index.ts:74](https://github.com/jackness1208/yyl-sugar-webpack-plugin/blob/e89cb2a/src/index.ts#L74)
+Defined in: [src/index.ts:74](https://github.com/yyl-team/yyl-sugar-webpack-plugin/blob/7289d26/src/index.ts#L74)

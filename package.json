@@ -1,5 +1,5 @@
 {
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "output/index.js",
   "types": "output/index.d.ts",
   "eslintConfig": {
@@ -32,7 +32,7 @@
     "d": "rollup --config ./rollup.config.js",
     "build": "cross-env NODE_ENV=production rollup --config ./rollup.config.js",
     "w": "rollup --watch --config ./rollup.config.js",
-    "prepublishOnly": "npm run prettier & npm test & npm run doc",
+    "prepublishOnly": "npm run prettier && npm test && npm run doc",
     "doc": "typedoc src/index.ts --plugin typedoc-plugin-markdown",
     "test": "npm run build & jest ./test/jest/"
   },

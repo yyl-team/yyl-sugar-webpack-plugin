@@ -1,5 +1,5 @@
 /*!
- * yyl-sugar-webpack-plugin cjs 1.0.9
+ * yyl-sugar-webpack-plugin cjs 1.0.10
  * (c) 2020 - 2021 
  * Released under the MIT License.
  */
@@ -327,7 +327,7 @@ class YylSugarWebpackPlugin extends yylWebpackPluginBase.YylWebpackPluginBase {
                         if (fileInfo) {
                             this.updateAssets({
                                 compilation,
-                                oriDist: fileInfo.dist,
+                                oriDist: key,
                                 assetsInfo: fileInfo
                             });
                             total++;
