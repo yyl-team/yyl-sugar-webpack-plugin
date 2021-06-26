@@ -26,9 +26,9 @@
     "pug-plain-loader": "^1.1.0",
     "style-loader": "^2.0.0",
     "url-loader": "^4.1.1",
-    "webpack": "5.24.3",
-    "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^4.0.0-beta.0",
+    "webpack": "5.40.0",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "3.11.2",
     "yyl-fs": "^0.3.3",
     "yyl-os": "^0.10.2",
     "yyl-util": "^2.3.7"
